@@ -1,6 +1,6 @@
 import toast from "../toast.svelte";
 import init, {
-    init2,
+    init_error_handler,
     decompress,
     parse_letter,
     decompress_if_compressed,
@@ -11,7 +11,7 @@ import init, {
     type JsStationery as Stationery
 } from "./wasm/parsing_wasm";
 
-init().then(init2);
+init().then(init_error_handler);
 
 class LetterFile {
     public letter: Letter = $state()!
