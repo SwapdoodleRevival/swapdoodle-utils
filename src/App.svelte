@@ -1,9 +1,9 @@
 <script lang="ts">
     import { parse_letter, type Letter } from "./lib/parsing/parsing";
     import toast from "./lib/toast.svelte";
-    import OpenFile from "./ui/OpenFile.svelte";
-    import Toast from "./ui/Toast.svelte";
-    import ViewFile from "./ui/ViewFile.svelte";
+    import OpenFile from "./pages/OpenFile.svelte";
+    import Toast from "./components/Toast.svelte";
+    import ViewFile from "./pages/ViewFile.svelte";
 
     function dragOver(e: Event) {
         e.preventDefault();
