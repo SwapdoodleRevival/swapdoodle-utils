@@ -1,35 +1,22 @@
 <script lang="ts">
-    import { decompress, type Letter } from "../lib/parsing/parsing";
-    import { decompress_if_compressed } from "../lib/parsing/wasm/parsing_wasm";
+    import { LetterFile } from "../lib/parsing/parsing.svelte";
     import BlobImage from "../components/BlobImage.svelte";
     import Doodle from "../components/Doodle.svelte";
 
     let {
-        letter,
-        letterData,
+        file,
     }: {
-        letter: Letter;
-        letterData: Uint8Array;
+        file: LetterFile;
     } = $props();
 
-    function download(data: Uint8Array, as: string) {
-        let blob = new Blob([data], {
-            type: "application/octet-stream",
-        });
-        let downloadUrl = URL.createObjectURL(blob);
-        let a = document.createElement("a");
-        a.download = as;
-        a.href = downloadUrl;
-        a.click();
-        URL.revokeObjectURL(downloadUrl);
-    }
+    let letter = $derived(file.letter);
 </script>
 
 {#snippet bpk1BlockList(blocksMap: Map<string, Uint8Array[]>)}
     <div class="sections">
         {#each blocksMap.entries() as [name, blocks]}
             {#if blocks.length <= 1}
-                <button onclick={() => download(blocks[0], `${name}.bin`)}>
+                <button onclick={() => file.downloadBpkBlock(name, 0)}>
                     {name}
                 </button>
             {:else}
@@ -39,8 +26,7 @@
                     </span>
                     {#each blocks as block, index}
                         <button
-                            onclick={() =>
-                                download(block, `${name}$${index}.bin`)}
+                            onclick={() => file.downloadBpkBlock(name, index)}
                         >
                             #{index + 1}
                         </button>
@@ -54,10 +40,7 @@
 <div class="file">
     <div class="header">
         <div class="title">Swapdoodle file viewer</div>
-        <button
-            onclick={() =>
-                download(decompress_if_compressed(letterData), "letter.bpk")}
-        >
+        <button onclick={() => file.downloadDecompressedBpk("letter.bpk")}>
             Save letter (decompressed)
         </button>
     </div>

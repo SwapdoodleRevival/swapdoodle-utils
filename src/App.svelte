@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { parse_letter, type Letter } from "./lib/parsing/parsing";
+    import { LetterFile } from "./lib/parsing/parsing.svelte";
     import toast from "./lib/toast.svelte";
     import OpenFile from "./pages/OpenFile.svelte";
     import Toast from "./components/Toast.svelte";
@@ -18,37 +18,27 @@
         }
     }
 
-    function readFile(file: File) {
-        let reader = new FileReader();
-        reader.onload = (readerEvent) => {
-            let content = readerEvent.target?.result as ArrayBuffer | null;
-            if (!content) {
-                return;
-            }
-            letterData = new Uint8Array(content);
-            try {
-                letter = parse_letter(letterData);
-            } catch {
-                toast.pushToast({
-                    title: "Error reading file",
-                    message: "This file does not seem to be a Swapdoodle Letter."
-                })
-            }
-        };
-
-        reader.readAsArrayBuffer(file);
+    async function readFile(file: File) {
+        try {
+            letter = await LetterFile.readFile(file);
+        } catch (e) {
+            let message = (e as Partial<Error>)?.message;
+            toast.pushToast({
+                title: "Error reading file",
+                message: message ?? "Unknown error",
+            });
+        }
     }
 
-    let letterData: Uint8Array | undefined = $state();
-    let letter: Letter | undefined = $state();
+    let letter: LetterFile | undefined = $state();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="root" ondragover={dragOver} ondrop={drop}>
-    {#if !(letter && letterData)}
+    {#if !letter}
         <OpenFile onfileaccepted={(file) => readFile(file)} />
     {:else}
-        <ViewFile {letter} {letterData}></ViewFile>
+        <ViewFile file={letter}></ViewFile>
     {/if}
     <Toast></Toast>
 </div>

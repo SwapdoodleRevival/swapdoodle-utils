@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import type { Sheet, Colors, Stationery } from "../lib/parsing/parsing";
+    import type { Sheet, Colors, Stationery } from "../lib/parsing/parsing.svelte";
     import StationeryComponent from "./Stationery.svelte";
 
     let canvas: HTMLCanvasElement | undefined = $state();
