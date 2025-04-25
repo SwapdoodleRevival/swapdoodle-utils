@@ -4,14 +4,61 @@ import init, {
     decompress,
     parse_letter,
     decompress_if_compressed,
-    type JsLetter as Letter,
+    type JsLetter,
     type Sheet,
     type SheetStroke,
     type Colors,
-    type JsStationery as Stationery
+    type JsStationery
 } from "./wasm/parsing_wasm";
 
 init().then(init_error_handler);
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+type Letter = Modify<JsLetter, {
+    stationery?: Stationery,
+    thumbnails: Blob[]
+}>;
+
+type Stationery = Modify<JsStationery, {
+    background_2d: Blob
+    background_3d: Blob
+    mask: Blob
+}>;
+
+async function postProcessLetter(jsLetter: JsLetter): Promise<Letter> {
+    // @ts-ignore
+    let letter: Letter = jsLetter
+
+    if (jsLetter.stationery) {
+        letter.stationery!.background_2d = new Blob([jsLetter.stationery.background_2d], { type: "image/jpeg" })
+        letter.stationery!.background_3d = new Blob([jsLetter.stationery.background_3d], { type: "image/jpeg" })
+
+        let canvas = new OffscreenCanvas(256, 256);
+        let ctx = canvas.getContext("2d");
+        if (!ctx)
+            throw new Error(
+                "Unable to render Stationery mask (get canvas context failed)",
+            );
+        let imgData = new ImageData(256, 256);
+
+        let pos = 0;
+        for (let row of jsLetter.stationery.mask) {
+            for (let color of row) {
+                imgData.data[pos + 3] = color * 17;
+                pos += 4;
+            }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+
+        letter.stationery!.mask = await canvas.convertToBlob();
+    }
+
+    letter.thumbnails = jsLetter.thumbnails.map(data => new Blob([data], { type: "image/jpeg" }))
+
+    return letter;
+}
 
 class LetterFile {
     public letter: Letter = $state()!
@@ -36,9 +83,13 @@ class LetterFile {
                 try {
                     let letter = parse_letter(letterData);
                     let file = new LetterFile();
-                    file.letter = letter;
+                    postProcessLetter(letter).then(
+                        letter => {
+                            file.letter = letter;
+                            resolve(file);
+                        }
+                    )
                     file.letterData = letterData;
-                    resolve(file);
                     return;
                 } catch {
                     // TODO: Smarter errors from Rust
@@ -58,7 +109,7 @@ class LetterFile {
         let blockData = this.letter.blocks.get(block)?.[index];
         if (!blockData)
             throw new Error("Nonexistent block");
-        LetterFile.downloadFile(blockData, `${block}${index}.bin`)
+        LetterFile.downloadFile(blockData, `${block}$${index}.bin`)
     }
 
     private static downloadFile(data: Uint8Array, as: string) {

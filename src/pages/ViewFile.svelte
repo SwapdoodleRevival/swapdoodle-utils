@@ -65,11 +65,7 @@
                     <p>
                         <b>{title}</b>
                     </p>
-                    <BlobImage
-                        class="thumbnail"
-                        src={new Blob([thumbnail], { type: "image/jpeg" })}
-                        alt={title}
-                    />
+                    <BlobImage class="thumbnail" src={thumbnail} alt={title} />
                 </div>
             {/each}
         </div>
@@ -111,9 +107,10 @@
             <p>Name: {letter.stationery.name}</p>
 
             <div class="gallery">
-                {#each [letter.stationery.background_2d, letter.stationery.background_3d] as stationery}
+                {#each [letter.stationery.background_2d, letter.stationery.background_3d, letter.stationery.mask] as stationery}
                     <BlobImage
-                        src={new Blob([stationery])}
+                        src={stationery}
+                        style="background-color: white;"
                         alt={"Stationery"}
                     />
                 {/each}
