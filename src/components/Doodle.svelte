@@ -1,8 +1,20 @@
 <script lang="ts">
-    import type { Sheet, Colors, Stationery } from "../lib/parsing/parsing.svelte";
+    import type {
+        Sheet,
+        Colors,
+        Stationery,
+    } from "../lib/parsing/parsing.svelte";
     import StationeryComponent from "./Stationery.svelte";
 
-    let canvas: HTMLCanvasElement | undefined = $state();
+    let canvas3d: HTMLCanvasElement | undefined = $state();
+    let canvas2d: HTMLCanvasElement | undefined = $state();
+
+    let displayOptions = $state({
+        scale: 1.5,
+        show2d: true,
+        show3d: true,
+        showStationery: true,
+    });
 
     interface Props {
         sheet: Sheet;
@@ -23,18 +35,30 @@
     }
 
     async function draw() {
-        let c = canvas?.getContext("2d");
-        if (!c) return;
+        let c2d = canvas2d?.getContext("2d");
+        let c3d = canvas3d?.getContext("2d");
+        if (!c2d || !c3d)
+            throw new Error("Failed to obtain drawing context for canvas");
 
-        c.clearRect(0, 0, 255, 255);
-        c.lineCap = "round";
+        let pen: Partial<CanvasPathDrawingStyles & CanvasFillStrokeStyles> = {
+            lineCap: "round",
+            lineWidth: 2,
+            fillStyle: "",
+            strokeStyle: "",
+        };
+
+        c2d.clearRect(0, 0, 255, 255);
+        c3d.clearRect(0, 0, 255, 255);
+        c2d.lineCap = c3d.lineCap = "round";
 
         let old = { x: -1, y: -1 };
 
         for (let stroke of sheet.strokes) {
-            c.lineWidth = stroke.style_bold ? 5 : 2;
-            c.strokeStyle = getColor(stroke.style_color);
-            c.fillStyle = c.strokeStyle;
+            pen.lineWidth = stroke.style_bold ? 5 : 2;
+            pen.fillStyle = pen.strokeStyle = getColor(stroke.style_color);
+
+            let c = stroke.style_3d ? c3d : c2d;
+            Object.assign(c, pen);
 
             c.beginPath();
             if (old.x != -1) {
@@ -61,20 +85,78 @@
     });
 </script>
 
-<div class="doodle">
-    {#if stationery}
-        <StationeryComponent {stationery}></StationeryComponent>
-    {/if}
+<div class="doodle-wrapper" style:--scale={displayOptions.scale}>
+    <div class="doodle">
+        {#if stationery}
+            <div
+                style:display={displayOptions.showStationery
+                    ? "inherit"
+                    : "none"}
+                class="stationery"
+            >
+                <StationeryComponent {stationery}></StationeryComponent>
+            </div>
+        {/if}
 
-    <canvas class="drawing" bind:this={canvas} width="250" height="230">
-    </canvas>
+        <canvas
+            style:display={displayOptions.show3d ? "inherit" : "none"}
+            class="drawing"
+            bind:this={canvas3d}
+            width="250"
+            height="230"
+        >
+        </canvas>
+        <canvas
+            style:display={displayOptions.show2d ? "inherit" : "none"}
+            class="drawing"
+            bind:this={canvas2d}
+            width="250"
+            height="230"
+        >
+        </canvas>
+    </div>
+    <div class="controls">
+        <div class="controls-row">
+            <span>
+                <b>2D</b>
+                <input type="checkbox" bind:checked={displayOptions.show2d} />
+            </span>
+            <span>
+                <b>3D</b>
+                <input type="checkbox" bind:checked={displayOptions.show3d} />
+            </span>
+            <span>
+                <b>Background</b>
+                <input
+                    type="checkbox"
+                    bind:checked={displayOptions.showStationery}
+                />
+            </span>
+        </div>
+    </div>
 </div>
 
 <style>
+    .doodle-wrapper {
+        box-shadow:
+            0 3px 6px rgba(0, 0, 0, 0.16),
+            0 3px 6px rgba(0, 0, 0, 0.23);
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
     .doodle {
-        width: 250px;
-        height: 230px;
         position: relative;
+    }
+
+    .doodle,
+    .drawing {
+        width: calc(250px * var(--scale));
+        height: calc(230px * var(--scale));
+    }
+
+    .stationery {
+        transform: scale(var(--scale));
+        transform-origin: top left;
     }
 
     .doodle > :global(*) {
@@ -83,5 +165,15 @@
 
     .drawing {
         image-rendering: pixelated;
+    }
+
+    .controls {
+        padding: 8px;
+        background-color: white;
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
     }
 </style>
