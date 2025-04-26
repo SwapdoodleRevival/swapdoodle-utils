@@ -114,10 +114,16 @@
         }
 
         if (displayOptions.show2d) {
+            if(!canvas2d) {
+                throw new Error("Canvas layer for 2D is not initialized yet");
+            }
             resultCtx.drawImage(canvas2d, 0, 0);
         }
 
         if (displayOptions.show2d) {
+            if(!canvas3d) {
+                throw new Error("Canvas layer for 3D is not initialized yet");
+            }
             resultCtx.drawImage(canvas3d, 0, 0);
         }
 

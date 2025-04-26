@@ -1,6 +1,6 @@
 import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
-    init_error_handler,
+    init as initWasm,
     decompress,
     parse_letter,
     decompress_if_compressed,
@@ -13,7 +13,7 @@ import loadWasm, {
 
 async function init() {
     await loadWasm();
-    init_error_handler();
+    initWasm();
 }
 
 type Modify<T, R> = Omit<T, keyof R> & R;
