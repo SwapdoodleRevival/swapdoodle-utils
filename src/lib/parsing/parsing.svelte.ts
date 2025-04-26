@@ -1,5 +1,5 @@
 import toast from "../toast.svelte";
-import init, {
+import loadWasm, {
     init_error_handler,
     decompress,
     parse_letter,
@@ -11,7 +11,10 @@ import init, {
     type JsStationery
 } from "./wasm/parsing_wasm";
 
-init().then(init_error_handler);
+async function init() {
+    await loadWasm();
+    init_error_handler();
+}
 
 type Modify<T, R> = Omit<T, keyof R> & R;
 
@@ -157,4 +160,4 @@ class LetterFile {
        }*/
 }
 
-export { LetterFile, decompress, decompress_if_compressed, type Letter, type Sheet, type SheetStroke, type Colors, type Stationery };
+export { init, LetterFile, decompress, decompress_if_compressed, type Letter, type Sheet, type SheetStroke, type Colors, type Stationery };
