@@ -119,16 +119,19 @@ class LetterFile {
             let ctx2d = stationery.getContext("2d")!;
 
             let part3d = new OffscreenCanvas(256, 256);
+            let partMask = new OffscreenCanvas(256, 256);
+
             let ctx3d = part3d.getContext("2d")!;
+            let ctxMask = partMask.getContext("2d")!;
 
             ctx2d.drawImage(await createImageBitmap(this.letter.stationery.background_2d), 0, 0);
             ctx3d.drawImage(await createImageBitmap(this.letter.stationery.background_3d), 0, 0);
+            ctxMask.drawImage(await createImageBitmap(this.letter.stationery.mask), 0, 0);
 
             let imgData = ctx3d.getImageData(0, 0, 256, 256);
-            let pos = 0;
-            for (let color of await this.letter.stationery.mask.bytes()) {
-                imgData.data[pos + 3] = color * 17;
-                pos += 4;
+            let maskData = ctxMask.getImageData(0, 0, 256, 256);
+            for (let pos = 3; pos < 256*256*4; pos += 4) {
+                imgData.data[pos] = maskData.data[pos];
             }
             ctx3d.putImageData(imgData, 0, 0);
             ctx2d.drawImage(part3d, 0, 0);
