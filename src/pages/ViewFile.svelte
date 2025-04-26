@@ -77,6 +77,7 @@
             {#each letter.sheets as sheet (sheet)}
                 <div>
                     <Doodle
+                        {file}
                         {sheet}
                         colors={letter.colors}
                         stationery={letter.stationery}

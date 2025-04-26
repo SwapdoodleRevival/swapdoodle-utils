@@ -3,7 +3,14 @@
         Sheet,
         Colors,
         Stationery,
+        LetterFile,
     } from "../lib/parsing/parsing.svelte";
+    import toast from "../lib/toast.svelte";
+    import {
+        CanvasContextCreationError,
+        invokeDownload,
+        LoudError,
+    } from "../lib/utils";
     import StationeryComponent from "./Stationery.svelte";
 
     let canvas3d: HTMLCanvasElement | undefined = $state();
@@ -17,12 +24,13 @@
     });
 
     interface Props {
+        file: LetterFile;
         sheet: Sheet;
         colors?: Colors;
         stationery?: Stationery;
     }
 
-    let { sheet, colors, stationery }: Props = $props();
+    let { file, sheet, colors, stationery }: Props = $props();
 
     function sleep(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,8 +45,7 @@
     async function draw() {
         let c2d = canvas2d?.getContext("2d");
         let c3d = canvas3d?.getContext("2d");
-        if (!c2d || !c3d)
-            throw new Error("Failed to obtain drawing context for canvas");
+        if (!c2d || !c3d) throw new CanvasContextCreationError();
 
         let pen: Partial<CanvasPathDrawingStyles & CanvasFillStrokeStyles> = {
             lineCap: "round",
@@ -83,6 +90,39 @@
     $effect(() => {
         draw();
     });
+
+    async function exportDoodle() {
+        if (
+            !displayOptions.show2d &&
+            !displayOptions.show3d &&
+            !displayOptions.showStationery
+        ) {
+            toast.info({
+                title: "What?",
+                message:
+                    "You just tried to export a blank image. Why would you do that?\nEnable some of the layers first and then try again.",
+            });
+            return;
+        }
+
+        let result = new OffscreenCanvas(250, 230);
+        let resultCtx = result.getContext("2d");
+        if (!resultCtx) throw new CanvasContextCreationError();
+
+        if (displayOptions.showStationery) {
+            resultCtx.drawImage(await file.flattenStationery(), 0, 0);
+        }
+
+        if (displayOptions.show2d) {
+            resultCtx.drawImage(canvas2d, 0, 0);
+        }
+
+        if (displayOptions.show2d) {
+            resultCtx.drawImage(canvas3d, 0, 0);
+        }
+
+        invokeDownload(await result.convertToBlob(), "doodle.png");
+    }
 </script>
 
 <div class="doodle-wrapper" style:--scale={displayOptions.scale}>
@@ -97,19 +137,18 @@
                 <StationeryComponent {stationery}></StationeryComponent>
             </div>
         {/if}
-
         <canvas
-            style:display={displayOptions.show3d ? "inherit" : "none"}
+            style:display={displayOptions.show2d ? "inherit" : "none"}
             class="drawing"
-            bind:this={canvas3d}
+            bind:this={canvas2d}
             width="250"
             height="230"
         >
         </canvas>
         <canvas
-            style:display={displayOptions.show2d ? "inherit" : "none"}
+            style:display={displayOptions.show3d ? "inherit" : "none"}
             class="drawing"
-            bind:this={canvas2d}
+            bind:this={canvas3d}
             width="250"
             height="230"
         >
@@ -132,6 +171,9 @@
                     bind:checked={displayOptions.showStationery}
                 />
             </span>
+        </div>
+        <div class="controls-row centered">
+            <button onclick={exportDoodle}>Save as image</button>
         </div>
     </div>
 </div>
@@ -175,5 +217,9 @@
     .controls-row {
         display: flex;
         justify-content: space-between;
+    }
+
+    .centered {
+        justify-content: center;
     }
 </style>

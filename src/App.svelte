@@ -23,7 +23,7 @@
             letter = await LetterFile.readFile(file);
         } catch (e) {
             let message = (e as Partial<Error>)?.message;
-            toast.pushToast({
+            toast.warn({
                 title: "Error reading file",
                 message: message ?? "Unknown error",
             });

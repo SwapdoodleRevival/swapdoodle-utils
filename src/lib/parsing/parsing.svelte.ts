@@ -1,4 +1,4 @@
-import toast from "../toast.svelte";
+import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
     init_error_handler,
     decompress,
@@ -40,9 +40,7 @@ async function postProcessLetter(jsLetter: JsLetter): Promise<Letter> {
         let canvas = new OffscreenCanvas(256, 256);
         let ctx = canvas.getContext("2d");
         if (!ctx)
-            throw new Error(
-                "Unable to render Stationery mask (get canvas context failed)",
-            );
+            throw new CanvasContextCreationError();
         let imgData = new ImageData(256, 256);
 
         let pos = 0;
@@ -105,59 +103,38 @@ class LetterFile {
     }
 
     public downloadDecompressedBpk(fileName: string) {
-        LetterFile.downloadFile(decompress_if_compressed(this.letterData), fileName);
+        invokeDownload(decompress_if_compressed(this.letterData), fileName);
     }
 
     public downloadBpkBlock(block: string, index: number) {
         let blockData = this.letter.blocks.get(block)?.[index];
         if (!blockData)
             throw new Error("Nonexistent block");
-        LetterFile.downloadFile(blockData, `${block}$${index}.bin`)
+        invokeDownload(blockData, `${block}$${index}.bin`)
     }
 
-    private static downloadFile(data: Uint8Array, as: string) {
-        let blob = new Blob([data], {
-            type: "application/octet-stream",
-        });
-        let downloadUrl = URL.createObjectURL(blob);
-        let a = document.createElement("a");
-        a.download = as;
-        a.href = downloadUrl;
-        a.click();
-        URL.revokeObjectURL(downloadUrl);
-    }
+    public async flattenStationery() {
+        let stationery = new OffscreenCanvas(250, 230);
+        if (this.letter.stationery) {
+            let ctx2d = stationery.getContext("2d")!;
 
-    /*   async function prepCanvas() {
-           let part2d = new OffscreenCanvas(250, 230);
-           let part3d = new OffscreenCanvas(256, 256);
-           let part2dCtx = part2d.getContext("2d")!;
-           let part3dCtx = part3d.getContext("2d")!;
-           part2dCtx.drawImage(
-               await createImageBitmap(
-                   new Blob([stationery.background_2d], { type: "image/jpeg" }),
-               ),
-               0,
-               0,
-           );
-           part3dCtx.drawImage(
-               await createImageBitmap(
-                   new Blob([stationery.background_3d], { type: "image/jpeg" }),
-               ),
-               0,
-               0,
-           );
-           let imgData = part3dCtx.getImageData(0, 0, 256, 256);
-           let pos = 0;
-           for (let row of stationery.mask) {
-               for (let color of row) {
-                   imgData.data[pos + 3] = color * 17;
-                   pos += 4;
-               }
-           }
-           part3dCtx.putImageData(imgData, 0, 0);
-           part2dCtx.drawImage(part3d, 0, 0);
-           return await part2d.convertToBlob();
-       }*/
+            let part3d = new OffscreenCanvas(256, 256);
+            let ctx3d = part3d.getContext("2d")!;
+
+            ctx2d.drawImage(await createImageBitmap(this.letter.stationery.background_2d), 0, 0);
+            ctx3d.drawImage(await createImageBitmap(this.letter.stationery.background_3d), 0, 0);
+
+            let imgData = ctx3d.getImageData(0, 0, 256, 256);
+            let pos = 0;
+            for (let color of await this.letter.stationery.mask.bytes()) {
+                imgData.data[pos + 3] = color * 17;
+                pos += 4;
+            }
+            ctx3d.putImageData(imgData, 0, 0);
+            ctx2d.drawImage(part3d, 0, 0);
+        }
+        return stationery;
+    }
 }
 
 export { init, LetterFile, decompress, decompress_if_compressed, type Letter, type Sheet, type SheetStroke, type Colors, type Stationery };
