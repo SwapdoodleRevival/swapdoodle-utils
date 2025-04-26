@@ -2,9 +2,12 @@ import { mount } from 'svelte'
 import "./main.css"
 import "./font.css"
 import App from './App.svelte'
+import { init } from './lib/parsing/parsing.svelte'
 
-const app = mount(App, {
-  target: document.body!,
-});
+(async () => {
+  await init()
 
-export default app;
+  mount(App, {
+    target: document.body!,
+  });
+})()

@@ -5,7 +5,7 @@
 
 <div class="toasts">
     {#each toast.toasts.entries() as [key, t] (key)}
-        <div class="toast" transition:slide>
+        <div class="toast {t.type}" transition:slide>
             <div class="title">
                 {t.title}
             </div>
@@ -44,11 +44,23 @@
 
     .toast .title {
         padding: 0.5em 1em;
-        background-color: gold;
         font-weight: bold;
+    }
+
+    .toast.warn .title {
+        background-color: gold;
+    }
+
+    .toast.error .title {
+        background-color: red;
+    }
+
+    .toast.info .title {
+        background-color: lightskyblue;
     }
 
     .toast .message {
         padding: 1em;
+        white-space: pre-line;
     }
 </style>

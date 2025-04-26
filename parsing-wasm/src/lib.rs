@@ -15,7 +15,7 @@ use wasm_bindgen::prelude::*;
 pub type JsBlocksMap = HashMap<String, Vec<ByteBuf>>;
 
 #[wasm_bindgen]
-pub fn init2() {
+pub fn init() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 }
 
