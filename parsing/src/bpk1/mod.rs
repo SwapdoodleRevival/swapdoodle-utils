@@ -6,11 +6,11 @@ use std::{
     error::Error,
     ffi::CString,
     fmt::Display,
-    io::{self, BufRead, Cursor, Seek, SeekFrom},
+    io::{BufRead, Cursor, Seek, SeekFrom},
 };
 
 use crate::{
-    error::GenericResult,
+    error::{GenericError, GenericResult},
     lzss::decompress_from_slice,
     read::{BufReadSeekExt, ReadExt},
 };
@@ -20,6 +20,17 @@ pub struct BPK1Block {
     pub data: Vec<u8>,
 }
 
+const BPK1_CRC32_ALG: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::Algorithm {
+    width: 32,
+    poly: 0x04c11db7,
+    init: 0x04c11db7,
+    refin: false,
+    refout: false,
+    xorout: 0x0,
+    check: 0x0,
+    residue: 0x0,
+});
+
 fn has_bpk1_magic(reader: &[u8]) -> bool {
     reader.get(0..4).is_some_and(|magic| magic == *b"BPK1")
 }
@@ -27,15 +38,33 @@ fn has_bpk1_magic(reader: &[u8]) -> bool {
 #[derive(Debug, Clone, Copy)]
 pub enum BPK1Error {
     BadMagic,
+    ChecksumMismatched,
 }
 
 impl Display for BPK1Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Bad BPK1 magic")
+        use BPK1Error::*;
+        match self {
+            BadMagic => write!(f, "Bad BPK1 magic"),
+            ChecksumMismatched => write!(f, "Incorrect CRC32 checksum"),
+        }
     }
 }
 
 impl Error for BPK1Error {}
+
+pub fn calc_bpk1_checksum(data: &Vec<u8>) -> u32 {
+    let mut digest = BPK1_CRC32_ALG.digest();
+    digest.update(data);
+    digest.finalize()
+}
+
+fn assert_bpk1_checksum(expected: u32, data: &Vec<u8>) -> Result<(), BPK1Error> {
+    if expected != calc_bpk1_checksum(data) {
+        return Err(BPK1Error::ChecksumMismatched);
+    }
+    Ok(())
+}
 
 pub trait BPK1File
 where
@@ -82,7 +111,7 @@ where
                 let BlockHeader {
                     offset,
                     size,
-                    checksum: _,
+                    checksum,
                     name,
                 } = head;
 
@@ -92,12 +121,12 @@ where
                     name.to_string_lossy()
                 );
 
-                Ok(BPK1Block {
-                    name,
-                    data: reader.read_num_of_bytes(size as usize)?,
-                })
+                let data = reader.read_num_of_bytes(size as usize)?;
+                assert_bpk1_checksum(checksum, &data)?;
+
+                Ok(BPK1Block { name, data: data })
             })
-            .collect::<io::Result<Vec<BPK1Block>>>()?; // Collect into a Result<Vec> from an Iterator<Item = Result> to short circuit
+            .collect::<Result<Vec<BPK1Block>, GenericError>>()?; // Collect into a Result<Vec> from an Iterator<Item = Result> to short circuit
 
         Self::new_from_bpk1_blocks(blocks)
     }
