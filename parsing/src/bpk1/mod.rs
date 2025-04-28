@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    error::{GenericError, GenericResult},
+    error::GenericResult,
     lzss::decompress_from_slice,
     read::{BufReadSeekExt, ReadExt},
 };
@@ -53,17 +53,10 @@ impl Display for BPK1Error {
 
 impl Error for BPK1Error {}
 
-pub fn calc_bpk1_checksum(data: &Vec<u8>) -> u32 {
+pub fn calc_bpk1_checksum(data: &[u8]) -> u32 {
     let mut digest = BPK1_CRC32_ALG.digest();
     digest.update(data);
     digest.finalize()
-}
-
-fn assert_bpk1_checksum(expected: u32, data: &Vec<u8>) -> Result<(), BPK1Error> {
-    if expected != calc_bpk1_checksum(data) {
-        return Err(BPK1Error::ChecksumMismatched);
-    }
-    Ok(())
 }
 
 pub trait BPK1File
@@ -122,11 +115,14 @@ where
                 );
 
                 let data = reader.read_num_of_bytes(size as usize)?;
-                assert_bpk1_checksum(checksum, &data)?;
+
+                if checksum != calc_bpk1_checksum(&data) {
+                    Err(BPK1Error::ChecksumMismatched)?;
+                }
 
                 Ok(BPK1Block { name, data: data })
             })
-            .collect::<Result<Vec<BPK1Block>, GenericError>>()?; // Collect into a Result<Vec> from an Iterator<Item = Result> to short circuit
+            .collect::<GenericResult<Vec<BPK1Block>>>()?; // Collect into a Result<Vec> from an Iterator<Item = Result> to short circuit
 
         Self::new_from_bpk1_blocks(blocks)
     }
