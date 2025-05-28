@@ -18,12 +18,12 @@ async function init() {
 
 type Modify<T, R> = Omit<T, keyof R> & R;
 
-type Letter = Modify<JsLetter, {
+export type Letter = Modify<JsLetter, {
     stationery?: Stationery,
     thumbnails: Blob[]
 }>;
 
-type Stationery = Modify<JsStationery, {
+export type Stationery = Modify<JsStationery, {
     background_2d: Blob
     background_3d: Blob
     mask: Blob
@@ -61,7 +61,7 @@ async function postProcessLetter(jsLetter: JsLetter): Promise<Letter> {
     return letter;
 }
 
-class LetterFile {
+export class LetterFile {
     public letter: Letter = $state()!
     public letterData!: Uint8Array<ArrayBuffer>;
 
@@ -130,7 +130,7 @@ class LetterFile {
 
             let imgData = ctx3d.getImageData(0, 0, 256, 256);
             let maskData = ctxMask.getImageData(0, 0, 256, 256);
-            for (let pos = 3; pos < 256*256*4; pos += 4) {
+            for (let pos = 3; pos < 256 * 256 * 4; pos += 4) {
                 imgData.data[pos] = maskData.data[pos];
             }
             ctx3d.putImageData(imgData, 0, 0);
@@ -140,4 +140,4 @@ class LetterFile {
     }
 }
 
-export { init, LetterFile, decompress, decompress_if_compressed, type Letter, type Sheet, type SheetStroke, type Colors, type Stationery };
+export { decompress, decompress_if_compressed, type Sheet, type SheetStroke, type Colors };
