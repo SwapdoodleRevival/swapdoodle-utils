@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { LetterFile } from "../lib/parsing/parsing.svelte";
+    import { LetterFile } from "../lib/libdoodle/libdoodle.svelte";
     import BlobImage from "../components/BlobImage.svelte";
     import Doodle from "../components/Doodle.svelte";
 

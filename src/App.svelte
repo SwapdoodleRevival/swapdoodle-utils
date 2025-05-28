@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { LetterFile } from "./lib/parsing/parsing.svelte";
+    import { LetterFile } from "./lib/libdoodle/libdoodle.svelte";
     import toast from "./lib/toast.svelte";
     import OpenFile from "./pages/OpenFile.svelte";
     import Toast from "./components/Toast.svelte";

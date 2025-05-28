@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Stationery } from "../lib/parsing/parsing.svelte";
+    import type { Stationery } from "../lib/libdoodle/libdoodle.svelte";
 
     interface Props {
         stationery: Stationery;

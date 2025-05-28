@@ -4,7 +4,7 @@
         Colors,
         Stationery,
         LetterFile,
-    } from "../lib/parsing/parsing.svelte";
+    } from "../lib/libdoodle/libdoodle.svelte";
     import toast from "../lib/toast.svelte";
     import {
         CanvasContextCreationError,

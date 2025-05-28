@@ -9,7 +9,7 @@ import loadWasm, {
     type SheetStroke,
     type Colors,
     type JsStationery
-} from "./wasm/parsing_wasm";
+} from "./wasm/libdoodle_wasm";
 
 async function init() {
     await loadWasm();

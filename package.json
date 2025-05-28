@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "npm run build-wasm && npm run build-frontend",
     "build-frontend": "vite build --base=\"./\"",
-    "build-wasm": "wasm-pack build parsing-wasm --out-dir ../src/lib/parsing/wasm --target web",
+    "build-wasm": "wasm-pack build libdoodle-wasm --out-dir ../src/lib/libdoodle/wasm --target web",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
