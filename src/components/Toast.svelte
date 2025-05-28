@@ -1,10 +1,10 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
-    import toast from "../lib/toast.svelte";
+    import toasts from "../lib/toast.svelte";
 </script>
 
 <div class="toasts">
-    {#each toast.toasts.entries() as [key, t] (key)}
+    {#each toasts().entries() as [key, t] (key)}
         <div class="toast {t.type}" transition:slide>
             <div class="title">
                 {t.title}

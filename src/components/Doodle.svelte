@@ -5,7 +5,7 @@
         Stationery,
         LetterFile,
     } from "../lib/libdoodle/libdoodle.svelte";
-    import toast from "../lib/toast.svelte";
+    import { info } from "../lib/toast.svelte";
     import {
         CanvasContextCreationError,
         invokeDownload,
@@ -97,7 +97,7 @@
             !displayOptions.show3d &&
             !displayOptions.showStationery
         ) {
-            toast.info({
+            info({
                 title: "What?",
                 message:
                     "You just tried to export a blank image. Why would you do that?\nEnable some of the layers first and then try again.",
@@ -114,14 +114,14 @@
         }
 
         if (displayOptions.show2d) {
-            if(!canvas2d) {
+            if (!canvas2d) {
                 throw new Error("Canvas layer for 2D is not initialized yet");
             }
             resultCtx.drawImage(canvas2d, 0, 0);
         }
 
         if (displayOptions.show2d) {
-            if(!canvas3d) {
+            if (!canvas3d) {
                 throw new Error("Canvas layer for 3D is not initialized yet");
             }
             resultCtx.drawImage(canvas3d, 0, 0);

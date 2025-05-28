@@ -6,23 +6,23 @@ type Toast = {
     message: string
 }
 
-type TypedToast = Omit<Toast, "type">;
+type BaseToast = Omit<Toast, "type">;
 
 const toasts: Map<number, Toast> = new SvelteMap();
 
-function warn(toast: TypedToast) {
+export function warn(toast: BaseToast) {
     pushToast(Object.assign({ type: "warn" } as Toast, toast))
 }
 
-function error(toast: TypedToast) {
+export function error(toast: BaseToast) {
     pushToast(Object.assign({ type: "error" } as Toast, toast))
 }
 
-function info(toast: TypedToast) {
+export function info(toast: BaseToast) {
     pushToast(Object.assign({ type: "info" } as Toast, toast))
 }
 
-function pushToast(toast: Toast) {
+export function pushToast(toast: Toast) {
     let key = +new Date();
     toasts.set(key, toast);
     setTimeout(() => {
@@ -30,12 +30,6 @@ function pushToast(toast: Toast) {
     }, 5000);
 }
 
-export default {
-    get toasts() {
-        return toasts;
-    },
-    info,
-    warn,
-    error,
-    pushToast
-};
+export default function all() {
+    return toasts;
+}

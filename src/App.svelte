@@ -1,6 +1,6 @@
 <script lang="ts">
     import { LetterFile } from "./lib/libdoodle/libdoodle.svelte";
-    import toast from "./lib/toast.svelte";
+    import { warn } from "./lib/toast.svelte";
     import OpenFile from "./pages/OpenFile.svelte";
     import Toast from "./components/Toast.svelte";
     import ViewFile from "./pages/ViewFile.svelte";
@@ -23,7 +23,7 @@
             letter = await LetterFile.readFile(file);
         } catch (e) {
             let message = (e as Partial<Error>)?.message;
-            toast.warn({
+            warn({
                 title: "Error reading file",
                 message: message ?? "Unknown error",
             });
