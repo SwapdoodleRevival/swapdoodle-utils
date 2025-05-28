@@ -1,4 +1,4 @@
-import toast from "./toast.svelte";
+import { error } from "./toast.svelte";
 
 export function invokeDownload(data: Uint8Array | Blob, filename: string) {
     let blob: Blob;
@@ -20,7 +20,7 @@ export function invokeDownload(data: Uint8Array | Blob, filename: string) {
 export class LoudError extends Error {
     constructor(message: string, title?: string, options?: ErrorOptions) {
         super(message, options);
-        toast.error({
+        error({
             title: title ?? "Error",
             message: message
         })
