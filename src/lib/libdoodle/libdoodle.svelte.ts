@@ -24,7 +24,7 @@ await init();
 export class BPK1File {
     public fileName: string = $state("unnamed.bpk1");
     public blocks: BPK1Block[] = $state([])
-    public selectedBlock: BPK1Block | null = $state(null);
+    public selectedBlock: BPK1Block | null = $state.raw(null);
 
     // disable direct construction - use readFile
     private constructor() { };

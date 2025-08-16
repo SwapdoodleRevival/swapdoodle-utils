@@ -175,7 +175,7 @@
                 <Unknown />
             {/if}
 
-            <HexView data={file.selectedBlock.data}></HexView>
+            <HexView block={file.selectedBlock}></HexView>
         {/if}
     </div>
 </div>

@@ -1,43 +1,73 @@
 <script lang="ts">
-    import { slide } from "svelte/transition";
+    import HexEditor from "js-hex-editor/dist-svelte/HexEditor.svelte";
+    import type { BPK1Block } from "../lib/libdoodle/libdoodle.svelte";
 
     let {
-        data,
+        block,
     }: {
-        data: Uint8Array;
+        block: BPK1Block;
     } = $props();
 
-    let displayed = $state(false);
-
-    function hexdigit(i: number) {
-        let s = i.toString(16).substring(0, 2);
-        if (s.length === 1) {
-            s = "0" + s;
+    $effect(() => {
+        if (block) {
+            displayed = false;
         }
-        return s;
-    }
+    });
+
+    let displayed = $state(false);
 </script>
 
 <div>
-    <button class="btn std" onclick={() => (displayed = !displayed)}>
+    {#if displayed}
+        <div class="editor mt-2">
+            <HexEditor
+                data={block.data.buffer}
+                height="400px"
+                width="100%"
+            ></HexEditor>
+        </div>
+    {/if}
+    <button class="btn std mt-2" onclick={() => (displayed = !displayed)}>
         {#if displayed}
             Hide raw bytes
         {:else}
             Show raw bytes
         {/if}
     </button>
-    {#if displayed}
-        <div transition:slide>
-            <div class="bg-white px-2 py-1 inline-block shadow-xl mt-2 select-all">
-                <code class="whitespace-nowrap">
-                    {#each data as i, index}
-                        {#if index && index % 16 === 0}
-                            <br />
-                        {/if}
-                        {hexdigit(i)}
-                    {/each}
-                </code>
-            </div>
-        </div>
-    {/if}
 </div>
+
+<style lang="scss">
+    @reference "tailwindcss";
+
+    .editor {
+        :global(.number), :global(.ascii) {
+            @apply font-mono;
+        }
+
+        :global(.header-offset),
+        :global(.header-data),
+        :global(.header-ascii) {
+            @apply mb-2;
+
+            :global(select) {
+                @apply cursor-pointer bg-yellow-200 py-2 px-3 shadow hover:bg-yellow-300 active:bg-yellow-400 transition;
+            }
+        }
+
+        > :global(main) {
+            @apply border-none;
+
+            > :global(header) {
+                @apply bg-none border-none shadow-none;
+            }
+
+            > :global(svelte-virtual-list-viewport) {
+                @apply bg-white shadow;
+            }
+
+             > :global(footer) {
+                @apply bg-zinc-300 border-none py-2 px-3 mt-2 shadow;
+            }
+        }
+    }
+</style>
