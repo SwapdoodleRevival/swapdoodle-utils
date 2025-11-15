@@ -25,7 +25,12 @@
     } = $props();
 
     async function insertBlock() {
-        let files = await askForFile();
+        let files = null;
+        try {
+            files = await askForFile();
+        } catch {
+            // files is set to null
+        }
         let selected = files?.[0];
 
         if (selected) {
@@ -125,10 +130,6 @@
                     draggable="true"
                     ondragstart={(e) => {
                         dragIndex = i;
-                        e.dataTransfer?.setData(
-                            "application/octet-stream",
-                            "asdf",
-                        );
                     }}
                     role="listitem"
                 >
@@ -166,7 +167,7 @@
                     Delete block
                 </button>
             </div>
-            
+
             {@const Reader =
                 READERS[`./blocks/${file.selectedBlock.name}.svelte`]?.default}
             {#if Reader}

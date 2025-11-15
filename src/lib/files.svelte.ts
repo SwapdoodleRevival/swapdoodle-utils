@@ -1,17 +1,24 @@
 import { BPK1File } from "./libdoodle/libdoodle.svelte";
 import { warn } from "./toast.svelte";
 
-const fileInput: HTMLInputElement = document.createElement("input")
-fileInput.type = "file"
-
 export let files: BPK1File[] = $state([]);
-let _currentFile: BPK1File | null = $state(null);
+let _currentFile: BPK1File | null = $state.raw(null);
 
 export function askForFile(): Promise<FileList | null> {
-    return new Promise((resolve) => {
-        fileInput.addEventListener("change", (e: Event) => {
+    let fileInput = document.createElement("input")
+    fileInput.type = "file"
+
+    return new Promise((resolve, reject) => {
+        const success = (e: Event) => {
+            fileInput.removeEventListener("cancel", failure);
             resolve((e.target as HTMLInputElement | null)?.files ?? null);
-        }, { once: true })
+        };
+        const failure = (e: Event) => {
+            fileInput.removeEventListener("change", success);
+            reject("No file was selected");
+        }
+        fileInput.addEventListener("change", success, { once: true })
+        fileInput.addEventListener("cancel", failure, { once: true })
         fileInput.click();
     })
 }
@@ -27,7 +34,7 @@ export async function openNewFile(file: File | Uint8Array<ArrayBufferLike>, name
             bpk1File = await BPK1File.readUint8Array(file);
         }
 
-        if(name) {
+        if (name) {
             bpk1File.fileName = name;
         }
 

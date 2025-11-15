@@ -13,6 +13,7 @@
     } from "./lib/files.svelte";
     import { mdiOpenInNew } from "@mdi/js";
     import Icon from "@jamescoyle/svelte-icon";
+    import { warn } from "./lib/toast.svelte";
 
     function dragOver(e: Event) {
         e.preventDefault();
@@ -31,19 +32,22 @@
     }
 
     async function fileOpen() {
-        let files = await askForFile();
-        for (let file of files ?? []) {
-            await openNewFile(file);
+        try {
+            let files = await askForFile();
+            for (let file of files ?? []) {
+                await openNewFile(file);
+            }
+        } catch (e) {
+            warn({
+                title: "Error opening file",
+                message: String(e),
+            });
         }
     }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-    class="w-dvw h-dvh flex flex-col"
-    ondragover={dragOver}
-    ondrop={drop}
->
+<div class="w-dvw h-dvh flex flex-col" ondragover={dragOver} ondrop={drop}>
     <!-- Open files -->
     <div class="flex w-full bg-yellow-700 text-white shadow-md z-10">
         <button
@@ -71,9 +75,8 @@
     <!-- Viewer -->
     <div class="flex flex-col grow overflow-y-auto">
         {#if getCurrentFile()}
-            <ViewFile file={getCurrentFile()!} onclose={closeCurrentFile}>
-
-            </ViewFile>
+            <ViewFile file={getCurrentFile()!} onclose={closeCurrentFile}
+            ></ViewFile>
         {:else}
             <button
                 class="w-full grow flex flex-col justify-center self-center items-center"
