@@ -4,6 +4,7 @@
         BPK1Block,
         BPK1File,
         Colors,
+        RGBA,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import { parse_colors } from "../../lib/libdoodle/libdoodle.svelte";
 
@@ -16,6 +17,10 @@
     } = $props();
 
     let colors: Colors = $derived(parse_colors(block));
+
+    function getCSSFromRGBA(rgba: RGBA) {
+        return `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
+    }
 </script>
 
 <Card style="info" title="About COLSLT1" class="mb-2">
@@ -24,29 +29,30 @@
 </Card>
 
 {#each colors.colors as color}
-    <div class="flex items-center gap-2 mb-2 font-bold">
+    <div class="flex items-center gap-2 mb-2">
         <div
             class="w-8 h-8 rounded-full overflow-hidden relative"
-            style="background-color: rgba({color.primary.r},{color.primary
-                .g},{color.primary.b},{color.primary.a})"
+            style="background-color: {getCSSFromRGBA(color.primary)}"
         >
             <div
                 class="w-[50%] h-[50%] absolute bottom-0"
-                style="background-color: rgba({color.extra1.r},{color.extra1
-                    .g},{color.extra1.b},{color.extra1.a})"
+                style="background-color: {getCSSFromRGBA(color.extra1)}"
             ></div>
             <div
                 class="w-[50%] h-[50%] absolute right-0 top-0"
-                style="background-color: rgba({color.extra2.r},{color.extra2
-                    .g},{color.extra2.b},{color.extra2.a})"
+                style="background-color: {getCSSFromRGBA(color.extra2)}"
             ></div>
             <div
                 class="w-[50%] h-[50%] absolute right-0 bottom-0"
-                style="background-color: rgba({color.extra3.r},{color.extra3
-                    .g},{color.extra3.b},{color.extra3.a})"
+                style="background-color: {getCSSFromRGBA(color.extra3)}"
             ></div>
         </div>
 
-        {color.name}
+        <div class="flex flex-col">
+            <span class="font-bold">
+                {color.name}
+            </span>
+            ID: {color.id}
+        </div>
     </div>
 {/each}

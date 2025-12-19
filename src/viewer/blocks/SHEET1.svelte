@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { derived } from "svelte/store";
     import Doodle from "../../components/Doodle.svelte";
     import type {
         BPK1Block,
@@ -13,6 +12,7 @@
         parse_sheet,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import Card from "../../components/Card.svelte";
+    import { onMount } from "svelte";
 
     let {
         file,
@@ -25,6 +25,7 @@
     let availableColors = $derived(
         file.blocks.filter((k) => k.name === "COLSLT1"),
     );
+
     let sheet: Sheet = $derived(parse_sheet(block));
 
     let selectedColorsBlock: BPK1Block | null = $state(null);
@@ -32,21 +33,41 @@
     let backupColors: Colors = {
         colors: [
             // ignore extra colors for now
-            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
-            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
-            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
-            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
-            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
+            {
+                primary: { r: 255, g: 0, b: 0, a: 255 },
+                id: 0,
+                name: "",
+            } as Color,
+            {
+                primary: { r: 255, g: 255, b: 0, a: 255 },
+                id: 0,
+                name: "",
+            } as Color,
+            {
+                primary: { r: 0, g: 255, b: 255, a: 255 },
+                id: 0,
+                name: "",
+            } as Color,
+            {
+                primary: { r: 255, g: 0, b: 255, a: 255 },
+                id: 0,
+                name: "",
+            } as Color,
+            {
+                primary: { r: 0, g: 255, b: 0, a: 255 },
+                id: 0,
+                name: "",
+            } as Color,
         ],
     };
+
+    onMount(() => {
+        selectedColorsBlock = availableColors ? availableColors[0] : null;
+    });
 
     let colors: Colors | null = $derived(
         selectedColorsBlock ? parse_colors(selectedColorsBlock) : backupColors,
     );
-
-    $effect(() => {
-        selectedColorsBlock = availableColors ? availableColors[0] : null;
-    });
 </script>
 
 <Card style="info" title="About SHEET1" class="mb-2">

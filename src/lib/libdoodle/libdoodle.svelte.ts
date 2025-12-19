@@ -1,18 +1,14 @@
 import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
     init as initWasm,
-    decompress,
     parse_bpk1,
     build_bpk1,
-    decompress_if_compressed,
-    type Sheet,
-    type SheetStroke,
-    type Colors,
     type BPK1Block,
     parse_stationery,
     compress_lz11,
 } from "./wasm/libdoodle_wasm";
 export * from "./wasm/libdoodle_wasm";
+export type * from "./wasm/libdoodle_wasm";
 
 async function init() {
     await loadWasm();
@@ -130,5 +126,3 @@ export async function parse_and_flatten_stationery(block: BPK1Block) {
     ctx2d.drawImage(part3d, 0, 0);
     return result;
 }
-
-export { decompress, decompress_if_compressed, type Sheet, type SheetStroke, type Colors };

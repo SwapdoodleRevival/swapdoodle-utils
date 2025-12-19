@@ -3,6 +3,7 @@ use std::{collections::HashMap, io::Read};
 use libdoodle::{
     blocks::{
         colslt1::Colors,
+        common1::{BasicDateTime, CommonInfo as TrueCommonInfo},
         miistd1::{MiiData, MiiDataBytes},
         sheet1::Sheet,
     },
@@ -107,4 +108,25 @@ pub fn parse_mii_data(block: &BPK1Block) -> Result<MiiPreview, JsError> {
     read_mii_data(block)
         .map(|v| v.into())
         .map_err(|e| create_frontend_error("MIISTD1 parser", &e.to_string()))
+}
+
+#[derive(Tsify, Debug, Serialize)]
+#[tsify(into_wasm_abi)]
+pub struct CommonInfo {
+    pub note_id: u128,
+    pub reply_to_note_id: u128,
+    pub sender_pid: u32,
+    pub sent: BasicDateTime,
+}
+
+#[wasm_bindgen]
+pub fn parse_commoninfo(block: &BPK1Block) -> Result<CommonInfo, JsError> {
+    let common_info = TrueCommonInfo::try_from(block.data.as_slice())
+        .map_err(|e| create_frontend_error("COMMON1 parser", &e.to_string()))?;
+    Ok(CommonInfo {
+        note_id: common_info.note_id as u128,
+        reply_to_note_id: common_info.reply_to_note_id as u128,
+        sender_pid: common_info.sender_pid,
+        sent: common_info.sent,
+    })
 }

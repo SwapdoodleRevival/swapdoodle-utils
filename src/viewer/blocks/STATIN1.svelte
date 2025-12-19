@@ -1,16 +1,9 @@
 <script lang="ts">
-    import type { derived } from "svelte/store";
-    import Doodle from "../../components/Doodle.svelte";
     import type {
         BPK1Block,
         BPK1File,
-        Stationery,
     } from "../../lib/libdoodle/libdoodle.svelte";
-    import {
-        parse_l4_data,
-        parse_stationery,
-    } from "../../lib/libdoodle/libdoodle.svelte";
-    import StationeryComponent from "../../components/Stationery.svelte";
+    import { parse_stationery } from "../../lib/libdoodle/libdoodle.svelte";
     import BlobImage from "../../components/BlobImage.svelte";
     import L4Image from "../../components/L4Image.svelte";
     import { openNewFile } from "../../lib/files.svelte";
@@ -33,17 +26,14 @@
     );
 </script>
 
-<Card style="info" title="About THUMB2" class="mb-2">
-    STATIN1 blocks contain the stationery of the note.
-</Card>
-
-<Card style="info" title="By the way..." class="mb-2">
-    STATIN1 blocks themselves are BPK1 archives.
+<Card style="info" title="About STATIN1" class="mb-2">
+    STATIN1 blocks contain the stationery of the note. STATIN1 blocks themselves
+    are BPK1 archives.
     <div class="mt-2">
         <button
             class="btn std"
             onclick={() => {
-                openNewFile(block.data, `${file.fileName} - STATIN1.bpk` );
+                openNewFile(block.data, `${file.fileName} - STATIN1.bpk`);
             }}>Open in new tab</button
         >
     </div>
