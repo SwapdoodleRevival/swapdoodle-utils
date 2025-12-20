@@ -12,14 +12,16 @@
     let stationeryMask: string = $state("");
 
     $effect(() => {
-        stationery2d = URL.createObjectURL(stationery.background_2d);
-        stationery3d = URL.createObjectURL(stationery.background_3d);
-        stationeryMask = URL.createObjectURL(stationery.mask);
+        stationery2d = URL.createObjectURL(
+            new Blob([stationery.background_2d] as BlobPart[]),
+        );
+        stationery3d = URL.createObjectURL(
+            new Blob([stationery.background_3d] as BlobPart[]),
+        );
 
         const teardown = () => {
             URL.revokeObjectURL(stationery2d);
             URL.revokeObjectURL(stationery3d);
-            URL.revokeObjectURL(stationeryMask);
         };
 
         return teardown;

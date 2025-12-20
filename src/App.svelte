@@ -1,115 +1,96 @@
 <script lang="ts">
-    import { LetterFile } from "./lib/libdoodle/libdoodle.svelte";
-    import { warn } from "./lib/toast.svelte";
-    import OpenFile from "./pages/OpenFile.svelte";
+    import packageFile from "../package.json";
     import Toast from "./components/Toast.svelte";
-    import ViewFile from "./pages/ViewFile.svelte";
+    import ViewFile from "./viewer/ViewFile.svelte";
     import Dialog from "./components/Dialog.svelte";
-    import { pushDialog } from "./lib/dialog.svelte";
     import {
-        encode as b64encode,
-        decode as b64decode,
-    } from "base64-arraybuffer";
-    import { onMount } from "svelte";
-
-    const NEW_TAB_HASH = "#transfer-file";
+        askForFile,
+        files,
+        openNewFile,
+        getCurrentFile,
+        setCurrentFile,
+        closeCurrentFile,
+    } from "./lib/files.svelte";
+    import { mdiOpenInNew } from "@mdi/js";
+    import Icon from "@jamescoyle/svelte-icon";
+    import { warn } from "./lib/toast.svelte";
 
     function dragOver(e: Event) {
         e.preventDefault();
     }
 
-    function drop(e: DragEvent) {
+    async function drop(e: DragEvent) {
         e.preventDefault();
 
-        if (blockFileDrag) return;
-
-        let file = e.dataTransfer?.files[0];
-        if (file) {
-            readFile(file);
+        let files = e.dataTransfer?.files;
+        if (!files) return;
+        for (let file of files) {
+            if (file) {
+                await openNewFile(file);
+            }
         }
     }
 
-    async function readFile(file: File) {
-        if (letter) {
-            try {
-                blockFileDrag = true;
-                let result = await pushDialog({
-                    title: "Open a file...",
-                    message:
-                        "A new file has been dragged into the application. What do you wish to do?",
-                    buttons: [
-                        {
-                            id: "replace",
-                            label: "Open",
-                        },
-                        {
-                            id: "new-tab",
-                            label: "Open in new tab",
-                        },
-                        {
-                            id: "cancel",
-                            label: "Cancel",
-                        },
-                    ],
-                });
-                if (result == "cancel") {
-                    return;
-                } else if (result == "new-tab") {
-                    openFileInNewTab(file);
-                }
-            } finally {
-                blockFileDrag = false;
-            }
-        }
+    async function fileOpen() {
         try {
-            letter = await LetterFile.readFile(file);
+            let files = await askForFile();
+            for (let file of files ?? []) {
+                await openNewFile(file);
+            }
         } catch (e) {
-            let message = (e as Partial<Error>)?.message;
             warn({
-                title: "Error reading file",
-                message: message ?? "Unknown error",
+                title: "Error opening file",
+                message: String(e),
             });
         }
     }
-
-    async function openFileInNewTab(file: File) {
-        let fileBase64 = b64encode(await file.arrayBuffer());
-        localStorage.setItem("transferredFile", fileBase64);
-        let openUrl = new URL(window.location.href);
-        openUrl.hash = NEW_TAB_HASH;
-        window.open(openUrl, "_blank");
-    }
-
-    onMount(async () => {
-        if (window.location.hash == NEW_TAB_HASH) {
-            let data = localStorage.getItem("transferredFile");
-            if (data) {
-                localStorage.removeItem("transferredFile");
-                letter = await LetterFile.readUint8Array(
-                    new Uint8Array(b64decode(data)),
-                );
-            }
-            window.location.href = "#";
-        }
-    });
-
-    let blockFileDrag = false;
-    let letter: LetterFile | undefined = $state();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="root" ondragover={dragOver} ondrop={drop}>
-    {#if !letter}
-        <OpenFile onfileaccepted={(file) => readFile(file)} />
-    {:else}
-        <ViewFile file={letter}></ViewFile>
-    {/if}
-    <Toast></Toast>
-    <Dialog></Dialog>
+<div class="w-dvw h-dvh flex flex-col" ondragover={dragOver} ondrop={drop}>
+    <!-- Open files -->
+    <div class="flex w-full bg-yellow-700 text-white shadow-md z-10">
+        <button
+            onclick={fileOpen}
+            class="btn p-2 pr-3 transition flex shrink-0 gap-2 bg-yellow-700 hover:bg-yellow-900 border-e-2 border-yellow-950"
+        >
+            <Icon path={mdiOpenInNew} type="mdi" color="white"></Icon>
+
+            Open file
+        </button>
+        <div class="flex overflow-x-scroll grow">
+            {#each files as file}
+                <button
+                    onclick={() => setCurrentFile(file)}
+                    class="btn p-2 transition {getCurrentFile() === file
+                        ? 'border-solid border-b-2 border-white bg-yellow-600'
+                        : 'hover:bg-yellow-900'}"
+                >
+                    {file.fileName}
+                </button>
+            {/each}
+        </div>
+    </div>
+
+    <!-- Viewer -->
+    <div class="flex flex-col grow overflow-y-auto">
+        {#if getCurrentFile()}
+            <ViewFile file={getCurrentFile()!} onclose={closeCurrentFile}
+            ></ViewFile>
+        {:else}
+            <button
+                class="w-full grow flex flex-col justify-center self-center items-center"
+                onclick={fileOpen}
+            >
+                <h1 class="font-bold text-6xl">Swapdoodle Utils</h1>
+                <p class="mb-4">version: {packageFile.version}</p>
+                <p class="text-lg">
+                    Click here or drag a file onto this page to open it
+                </p>
+            </button>
+        {/if}
+    </div>
 </div>
 
-<style>
-    .root {
-        min-height: 100vh;
-    }
-</style>
+<Toast></Toast>
+<Dialog></Dialog>

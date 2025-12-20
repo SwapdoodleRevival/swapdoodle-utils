@@ -1,7 +1,7 @@
 {
   "name": "swapdoodle-tools",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,9 @@
   "dependencies": {
     "@jamescoyle/svelte-icon": "^0.1.1",
     "@mdi/js": "^7.4.47",
-    "base64-arraybuffer": "^1.0.2"
+    "@sveltejs/svelte-virtual-list": "^3.0.1",
+    "@tailwindcss/vite": "^4.1.11",
+    "js-hex-editor": "^0.1.0",
+    "tailwindcss": "^4.1.11"
   }
 }

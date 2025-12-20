@@ -3,7 +3,7 @@ import { error } from "./toast.svelte";
 export function invokeDownload(data: Uint8Array | Blob, filename: string) {
     let blob: Blob;
     if (data instanceof Uint8Array) {
-        blob = new Blob([data], {
+        blob = new Blob([data] as BlobPart[], {
             type: "application/octet-stream",
         });
     } else {

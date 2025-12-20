@@ -1,66 +1,17 @@
 <script lang="ts">
-    import { slide } from "svelte/transition";
+    import { scale } from "svelte/transition";
     import toasts from "../lib/toast.svelte";
+    import Card from "./Card.svelte";
 </script>
 
-<div class="toasts">
+<div
+    class="z-10 fixed top-0 right-0 w-full flex flex-col items-end p-4 box-border pointer-events-none"
+>
     {#each toasts().entries() as [key, t] (key)}
-        <div class="toast {t.type}" transition:slide>
-            <div class="title">
-                {t.title}
-            </div>
-            <div class="message">
+        <div transition:scale class="shadow-2xl mb-2">
+            <Card style={t.type} title={t.title} class="flex-hidden">
                 {t.message}
-            </div>
+            </Card>
         </div>
     {/each}
 </div>
-
-<style>
-    .toasts {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        padding: 2em 1em;
-        box-sizing: border-box;
-        pointer-events: none;
-    }
-
-    .toast {
-        border-radius: 1em;
-        overflow: hidden;
-        background-color: white;
-        display: flex;
-        flex-direction: column;
-        box-shadow:
-            0 3px 6px rgba(0, 0, 0, 0.16),
-            0 3px 6px rgba(0, 0, 0, 0.23);
-        margin-bottom: 1em;
-    }
-
-    .toast .title {
-        padding: 0.5em 1em;
-        font-weight: bold;
-    }
-
-    .toast.warn .title {
-        background-color: gold;
-    }
-
-    .toast.error .title {
-        background-color: red;
-    }
-
-    .toast.info .title {
-        background-color: lightskyblue;
-    }
-
-    .toast .message {
-        padding: 1em;
-        white-space: pre-line;
-    }
-</style>

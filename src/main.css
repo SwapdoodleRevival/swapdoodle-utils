@@ -1,13 +1,35 @@
+@import "tailwindcss";
+
+* {
+    font-family: Inter, Helvetica, Arial, sans-serif;
+}
+
+code {
+    font-family: monospace;
+    font-size: 16px;
+}
+
 html {
     background-image: url("/cloth.png");
     background-position: center;
     background-attachment: fixed;
 }
 
-* {
-    font-family: Inter, Helvetica, Arial, sans-serif ;
+html,
+body {
+    margin: 0;
 }
 
-html, body {
-    margin: 0;
+.depth {
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.16),
+        0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.btn {
+    cursor: pointer;
+}
+
+.btn.std {
+    @apply bg-yellow-200 py-2 px-3 shadow hover:bg-yellow-300 active:bg-yellow-400 transition;
 }
