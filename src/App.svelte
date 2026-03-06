@@ -13,7 +13,48 @@
     } from "./lib/files.svelte";
     import { mdiOpenInNew } from "@mdi/js";
     import Icon from "@jamescoyle/svelte-icon";
-    import { warn } from "./lib/toast.svelte";
+    import { info, warn } from "./lib/toast.svelte";
+    import { onMount } from "svelte";
+    import { LoudError } from "./lib/utils";
+
+    onMount(() => {
+        window.removeEventListener("hashchange", handleHashChanged);
+        handleHashChanged();
+    });
+
+    function listenForHashChanged() {
+        window.addEventListener("hashchange", handleHashChanged, {
+            once: true,
+        });
+    }
+
+    function handleHashChanged() {
+        try {
+            let hash = location.hash.substring(1);
+            location.hash = "";
+            processHash(hash);
+        } finally {
+            setTimeout(listenForHashChanged, 1);
+        }
+    }
+
+    function processHash(hash: string) {
+        let params = new URLSearchParams(hash);
+
+        const action = params.get("action");
+
+        if (action === "netload") {
+            console.log("netload");
+            const url = params.get("url");
+            if (!url) {
+                throw new LoudError(
+                    'Command "netload" requires parameter "url", which was not provided',
+                );
+            }
+            const label = params.get("label");
+            loadFromNetwork(url, label);
+        }
+    }
 
     function dragOver(e: Event) {
         e.preventDefault();
@@ -29,6 +70,21 @@
                 await openNewFile(file);
             }
         }
+    }
+
+    async function loadFromNetwork(url: string, label: string | null = null) {
+        info({ title: "Netload", message: "Opening file from URL address." });
+        let f: Response;
+        try {
+            f = await fetch(url);
+        } catch (error) {
+            throw new LoudError(
+                (error as Error).message,
+                "Load from network failed!",
+            );
+        }
+        let blob = await f.blob();
+        openNewFile(await blob.bytes(), label);
     }
 
     async function fileOpen() {

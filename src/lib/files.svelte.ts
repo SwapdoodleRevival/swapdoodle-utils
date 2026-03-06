@@ -23,7 +23,7 @@ export function askForFile(): Promise<FileList | null> {
     })
 }
 
-export async function openNewFile(file: File | Uint8Array<ArrayBufferLike>, name?: string) {
+export async function openNewFile(file: File | Uint8Array<ArrayBufferLike>, name: string | null = null) {
     try {
         let bpk1File;
         if (file instanceof File) {
