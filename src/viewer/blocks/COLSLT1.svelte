@@ -6,7 +6,6 @@
         Colors,
         RGBA,
     } from "../../lib/libdoodle/libdoodle.svelte";
-    import { parse_colors } from "../../lib/libdoodle/libdoodle.svelte";
 
     let {
         file,
@@ -16,7 +15,7 @@
         block: BPK1Block;
     } = $props();
 
-    let colors: Colors = $derived(parse_colors(block));
+    let colors: Colors = $derived(block.parse_colors());
 
     function getCSSFromRGBA(rgba: RGBA) {
         return `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;

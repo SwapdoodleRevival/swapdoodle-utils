@@ -3,7 +3,6 @@
         BPK1Block,
         BPK1File,
     } from "../../lib/libdoodle/libdoodle.svelte";
-    import { parse_stationery } from "../../lib/libdoodle/libdoodle.svelte";
     import BlobImage from "../../components/BlobImage.svelte";
     import L4Image from "../../components/L4Image.svelte";
     import { openNewFile } from "../../lib/files.svelte";
@@ -17,7 +16,7 @@
         block: BPK1Block;
     } = $props();
 
-    let stationery = $derived(parse_stationery(block));
+    let stationery = $derived(block.parse_stationery());
     let background_2d = $derived(
         new Blob([stationery.background_2d] as BlobPart[]),
     );

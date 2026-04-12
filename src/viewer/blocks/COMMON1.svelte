@@ -6,7 +6,6 @@
         BPK1File,
         CommonInfo,
     } from "../../lib/libdoodle/libdoodle.svelte";
-    import { parse_commoninfo } from "../../lib/libdoodle/libdoodle.svelte";
 
     let {
         file,
@@ -16,7 +15,7 @@
         block: BPK1Block;
     } = $props();
 
-    let common_info: CommonInfo = $derived(parse_commoninfo(block));
+    let common_info: CommonInfo = $derived(block.parse_commoninfo());
 
     function basic_date_time_to_date(date: BasicDateTime): string {
         const datePart = `${(2000 + date.year).toString().padStart(4, "0")}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;

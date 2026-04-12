@@ -1,11 +1,12 @@
 import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
     init as initWasm,
-    parse_bpk1,
-    build_bpk1,
-    type BPK1Block,
-    parse_stationery,
+    // parse_bpk1,
+    // build_bpk1,
+    // parse_stationery,
     compress_lz11,
+    BPK1Block,
+    BPK1File
 } from "./wasm/libdoodle_wasm";
 export * from "./wasm/libdoodle_wasm";
 export type * from "./wasm/libdoodle_wasm";
@@ -17,15 +18,23 @@ async function init() {
 
 await init();
 
-export class BPK1File {
+export class OpenedFile {
     public fileName: string = $state("unnamed.bpk1");
-    public blocks: BPK1Block[] = $state([])
+    public bpk1File: BPK1File;
     public selectedBlock: BPK1Block | null = $state.raw(null);
 
-    // disable direct construction - use readFile
-    private constructor() { };
+    constructor() {
+        this.bpk1File = new BPK1File();
+    }
 
-    public static readFile(file: File): Promise<BPK1File> {
+    private static fromWrapped(name: string, file: BPK1File) {
+        let of = new OpenedFile();
+        of.fileName = name;
+        of.bpk1File = file;
+        return of;
+    }
+
+    public static readFile(file: File): Promise<OpenedFile> {
         return new Promise((resolve, reject) => {
             let reader = new FileReader();
 
@@ -38,7 +47,7 @@ export class BPK1File {
 
                 let letterData = new Uint8Array(content);
                 try {
-                    resolve(await this.readUint8Array(letterData));
+                    resolve(OpenedFile.fromBytes(file.name, letterData));
                 } catch (e) {
                     reject(e);
                 }
@@ -48,45 +57,14 @@ export class BPK1File {
         })
     }
 
-    public static async readUint8Array(letterData: Uint8Array<ArrayBufferLike>) {
+    public static fromBytes(name: string, data: Uint8Array<ArrayBufferLike>) {
         try {
-            let file = new BPK1File();
-            file.blocks = parse_bpk1(letterData);
-            return file;
+            return OpenedFile.fromWrapped(name, BPK1File.from_bpk1_bytes(data));
         } catch (e) {
             console.warn(e)
             // TODO: Smarter errors from Rust
             throw new Error("This file does not seem to be a Swapdoodle archive.")
         }
-    }
-
-    public downloadDecompressedBpk() {
-        invokeDownload(build_bpk1(this.blocks), this.fileName);
-    }
-
-    public downloadCompressedBpk() {
-        invokeDownload(compress_lz11(build_bpk1(this.blocks), 20000), this.fileName);
-    }
-
-    public downloadBpkBlock(block: BPK1Block) {
-        invokeDownload(block.data, `${block.name}.bin`)
-    }
-
-    public selectBlock(block: number) {
-        this.selectedBlock = this.blocks[block] ?? null;
-    }
-
-    public deleteSelectedBlock(): any {
-        if (!this.selectedBlock) {
-            return;
-        }
-
-        let block = this.blocks.indexOf(this.selectedBlock);
-        this.blocks.splice(block, 1)
-        if (this.blocks.length <= block) {
-            block = this.blocks.length - 1;
-        }
-        this.selectedBlock = this.blocks[block];
     }
 }
 

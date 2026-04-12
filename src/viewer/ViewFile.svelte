@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BPK1File } from "../lib/libdoodle/libdoodle.svelte";
+    import { BPK1File, OpenedFile } from "../lib/libdoodle/libdoodle.svelte";
     import type { SvelteComponent } from "svelte";
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
@@ -20,9 +20,11 @@
         file,
         onclose,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         onclose: () => any;
     } = $props();
+
+    $inspect(file.selectedBlock?.["__wbg_ptr"]);
 
     async function insertBlock() {
         let files = null;
@@ -120,7 +122,7 @@
         </button>
 
         {@render header("BPK1 Blocks")}
-        {#each file.blocks as block, i (block)}
+        {#each file.bpk1File.get_blocks() as block, i}
             <DropTarget
                 ondrop={(pos) => {
                     reorderFile(i, pos);
@@ -135,9 +137,11 @@
                 >
                     <button
                         class="{buttonClass(
-                            file.selectedBlock === block,
+                            file.selectedBlock?.is_equal(block) ?? false,
                         )} w-full"
-                        onclick={() => file.selectBlock(i)}
+                        onclick={() => {
+                            file.selectedBlock = block;
+                        }}
                     >
                         {block.name}
                     </button>

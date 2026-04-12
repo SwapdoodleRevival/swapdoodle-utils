@@ -1,11 +1,11 @@
 <script lang="ts">
     import HexEditor from "js-hex-editor/dist-svelte/HexEditor.svelte";
-    import type { BPK1Block } from "../lib/libdoodle/libdoodle.svelte";
+    import type { RBPK1Block } from "../lib/libdoodle/libdoodle.svelte";
 
     let {
         block,
     }: {
-        block: BPK1Block;
+        block: RBPK1Block;
     } = $props();
 
     $effect(() => {
@@ -20,10 +20,7 @@
 <div>
     {#if displayed}
         <div class="editor mt-2">
-            <HexEditor
-                data={block.data.buffer}
-                height="400px"
-                width="100%"
+            <HexEditor data={block.data.buffer} height="400px" width="100%"
             ></HexEditor>
         </div>
     {/if}
@@ -40,7 +37,8 @@
     @reference "tailwindcss";
 
     .editor {
-        :global(.number), :global(.ascii) {
+        :global(.number),
+        :global(.ascii) {
             @apply font-mono;
         }
 
@@ -65,7 +63,7 @@
                 @apply bg-white shadow;
             }
 
-             > :global(footer) {
+            > :global(footer) {
                 @apply bg-zinc-300 border-none py-2 px-3 mt-2 shadow;
             }
         }
