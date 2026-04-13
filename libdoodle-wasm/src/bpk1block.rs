@@ -55,7 +55,7 @@ impl From<MiiData> for MiiPreview {
 }
 
 impl FrontendBPK1Block {
-    fn upgrade(&self) -> Result<Rc<BPK1Block>, JsError> {
+    pub fn upgrade(&self) -> Result<Rc<BPK1Block>, JsError> {
         match self.block.upgrade() {
             Some(block) => Ok(block),
             None => Err(create_frontend_error("BPK1Block", "Reference has expired")),

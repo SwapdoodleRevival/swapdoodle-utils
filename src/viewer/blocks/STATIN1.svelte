@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {
         BPK1Block,
-        BPK1File,
+        OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import BlobImage from "../../components/BlobImage.svelte";
     import L4Image from "../../components/L4Image.svelte";
@@ -12,7 +12,7 @@
         file,
         block,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         block: BPK1Block;
     } = $props();
 

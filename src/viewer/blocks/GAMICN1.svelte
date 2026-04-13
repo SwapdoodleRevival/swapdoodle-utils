@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {
         BPK1Block,
-        BPK1File,
+        OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import { openNewFile } from "../../lib/files.svelte";
     import Card from "../../components/Card.svelte";
@@ -10,7 +10,7 @@
         file,
         block,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         block: BPK1Block;
     } = $props();
 </script>

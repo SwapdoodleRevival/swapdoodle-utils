@@ -1,10 +1,6 @@
 import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
     init as initWasm,
-    // parse_bpk1,
-    // build_bpk1,
-    // parse_stationery,
-    compress_lz11,
     BPK1Block,
     BPK1File
 } from "./wasm/libdoodle_wasm";
@@ -22,6 +18,7 @@ export class OpenedFile {
     public fileName: string = $state("unnamed.bpk1");
     public bpk1File: BPK1File;
     public selectedBlock: BPK1Block | null = $state.raw(null);
+    private _blocks: BPK1Block[] = $state([]);
 
     constructor() {
         this.bpk1File = new BPK1File();
@@ -31,6 +28,7 @@ export class OpenedFile {
         let of = new OpenedFile();
         of.fileName = name;
         of.bpk1File = file;
+        of.updateBlocks();
         return of;
     }
 
@@ -66,6 +64,32 @@ export class OpenedFile {
             throw new Error("This file does not seem to be a Swapdoodle archive.")
         }
     }
+
+    public get blocks() {
+        return this._blocks;
+    }
+
+    public updateBlocks() {
+        this._blocks = this.bpk1File.get_blocks();
+    }
+
+    public download(new_filename: string | null = null) {
+        invokeDownload(
+            this.bpk1File.to_uncompressed_bpk1_archive(),
+            new_filename ?? this.fileName
+        )
+    }
+
+    public downloadCompressed(new_filename: string | null = null) {
+        invokeDownload(
+            this.bpk1File.to_lz11_bpk1_archive(20000),
+            new_filename ?? this.fileName
+        )
+    }
+}
+
+export function downloadBPK1Block(block: BPK1Block) {
+    invokeDownload(block.data, `${block.name}.bin`);
 }
 
 export async function parse_l4_data(src: number[][], width: number, height: number) {
@@ -86,7 +110,7 @@ export async function parse_l4_data(src: number[][], width: number, height: numb
 
 export async function parse_and_flatten_stationery(block: BPK1Block) {
     let result = new OffscreenCanvas(250, 230);
-    let stationery = parse_stationery(block);
+    let stationery = block.parse_stationery();
     let ctx2d = result.getContext("2d")!;
     let part3d = new OffscreenCanvas(256, 256);
     let partMask = new OffscreenCanvas(256, 256);

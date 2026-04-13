@@ -2,9 +2,9 @@
     import Doodle from "../../components/Doodle.svelte";
     import type {
         BPK1Block,
-        BPK1File,
         Color,
         Colors,
+        OpenedFile,
         Sheet,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import Card from "../../components/Card.svelte";
@@ -13,12 +13,12 @@
         file,
         block,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         block: BPK1Block;
     } = $props();
 
     let availableColors = $derived(
-        file.get_blocks().filter((k) => k.name === "COLSLT1"),
+        file.bpk1File.get_blocks().filter((k) => k.name === "COLSLT1"),
     );
 
     let sheet: Sheet = $derived(block.parse_sheet());

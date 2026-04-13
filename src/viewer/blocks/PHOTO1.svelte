@@ -1,13 +1,13 @@
 <script lang="ts">
     import BlobImage from "../../components/BlobImage.svelte";
-    import type { BPK1File } from "../../lib/libdoodle/libdoodle.svelte";
+    import type { OpenedFile } from "../../lib/libdoodle/libdoodle.svelte";
     import type { BPK1Block } from "../../lib/libdoodle/wasm/libdoodle_wasm";
 
     let {
         file,
         block,
     }: {
-        file: BPK1File,
+        file: OpenedFile,
         block: BPK1Block;
     } = $props();
 

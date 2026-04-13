@@ -3,14 +3,14 @@
     import Card from "../../components/Card.svelte";
     import type {
         BPK1Block,
-        BPK1File,
+        OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
 
     let {
         file,
         block,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         block: BPK1Block;
     } = $props();
 

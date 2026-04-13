@@ -1,5 +1,9 @@
 <script lang="ts">
-    import { BPK1File, OpenedFile } from "../lib/libdoodle/libdoodle.svelte";
+    import {
+        BPK1File,
+        downloadBPK1Block,
+        OpenedFile,
+    } from "../lib/libdoodle/libdoodle.svelte";
     import type { SvelteComponent } from "svelte";
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
@@ -23,8 +27,6 @@
         file: OpenedFile;
         onclose: () => any;
     } = $props();
-
-    $inspect(file.selectedBlock?.["__wbg_ptr"]);
 
     async function insertBlock() {
         let files = null;
@@ -102,16 +104,13 @@
     <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100">
         {@render header("File options")}
 
-        <button
-            class={buttonClass(false)}
-            onclick={() => file.downloadDecompressedBpk()}
-        >
+        <button class={buttonClass(false)} onclick={() => file.download()}>
             <Icon path={mdiDownload} type="mdi" color="black"></Icon>
             Save BPK1 (uncompressed)
         </button>
         <button
             class={buttonClass(false)}
-            onclick={() => file.downloadCompressedBpk()}
+            onclick={() => file.downloadCompressed()}
         >
             <Icon path={mdiDownload} type="mdi" color="black"></Icon>
             Save BPK1 (compressed)
@@ -122,7 +121,7 @@
         </button>
 
         {@render header("BPK1 Blocks")}
-        {#each file.bpk1File.get_blocks() as block, i}
+        {#each file.blocks as block, i}
             <DropTarget
                 ondrop={(pos) => {
                     reorderFile(i, pos);
@@ -158,14 +157,17 @@
             <div class="flex flex-wrap gap-2 mb-2">
                 <button
                     class="btn std flex gap-2"
-                    onclick={() => file.downloadBpkBlock(file.selectedBlock!)}
+                    onclick={() => downloadBPK1Block(file.selectedBlock!)}
                 >
                     <Icon path={mdiDownload} type="mdi" color="black"></Icon>
                     Save block
                 </button>
                 <button
                     class="btn std flex gap-2"
-                    onclick={() => file.deleteSelectedBlock()}
+                    onclick={() => {
+                        file.bpk1File.delete_block(file.selectedBlock!);
+                        file.updateBlocks();
+                    }}
                 >
                     <Icon path={mdiTrashCan} type="mdi" color="black"></Icon>
                     Delete block

@@ -3,15 +3,15 @@
     import type {
         BasicDateTime,
         BPK1Block,
-        BPK1File,
         CommonInfo,
+        OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
 
     let {
         file,
         block,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         block: BPK1Block;
     } = $props();
 

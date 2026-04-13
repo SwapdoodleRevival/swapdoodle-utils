@@ -1,4 +1,4 @@
-use std::{default, ffi::CString, rc::Rc, str::FromStr};
+use std::{default, ffi::CString, ptr, rc::Rc, str::FromStr};
 
 use libdoodle::bpk1::{BPK1Block, BPK1Blocks, BPK1File};
 use wasm_bindgen::{JsError, prelude::wasm_bindgen};
@@ -37,6 +37,24 @@ impl FrontendBPK1File {
             });
         }
         Ok(result)
+    }
+
+    pub fn delete_block(&mut self, to_delete: &FrontendBPK1Block) -> Result<(), JsError> {
+        let found = self.blocks.iter().enumerate().find(|(_, el)| {
+            (to_delete.upgrade())
+                .map(|rc| ptr::eq(el.as_ref(), rc.as_ref()))
+                .unwrap_or(false)
+        });
+        match found {
+            Some((index, _)) => {
+                self.blocks.remove(index);
+                Ok(())
+            }
+            None => Err(create_frontend_error(
+                "BPK1File",
+                "Block does not belong to this File",
+            )),
+        }
     }
 
     pub fn insert_bpk1_block(&mut self, name: String, bytes: Vec<u8>) -> Result<(), JsError> {

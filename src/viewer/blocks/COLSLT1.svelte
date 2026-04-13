@@ -2,8 +2,8 @@
     import Card from "../../components/Card.svelte";
     import type {
         BPK1Block,
-        BPK1File,
         Colors,
+        OpenedFile,
         RGBA,
     } from "../../lib/libdoodle/libdoodle.svelte";
 
@@ -11,7 +11,7 @@
         file,
         block,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         block: BPK1Block;
     } = $props();
 
