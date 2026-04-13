@@ -70,14 +70,8 @@ impl FrontendBPK1File {
     }
 
     pub fn to_uncompressed_bpk1_archive(&mut self) -> Result<Vec<u8>, JsError> {
-        Ok(BPK1Blocks::bytes_from_bpk1_blocks(
-            &self
-                .blocks
-                .iter()
-                .map(|b| b.as_ref())
-                .collect::<Vec<&BPK1Block>>(),
-        )
-        .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))?)
+        Ok(BPK1Blocks::bytes_from_bpk1_blocks(&self.blocks)
+            .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))?)
     }
 
     pub fn to_lz11_bpk1_archive(&mut self, max_repeat_size: u32) -> Result<Vec<u8>, JsError> {
