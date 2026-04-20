@@ -1,6 +1,6 @@
 <script lang="ts">
     import {
-        BPK1File,
+        BackendBPK1File,
         downloadBPK1Block,
         OpenedFile,
     } from "../lib/libdoodle/libdoodle.svelte";

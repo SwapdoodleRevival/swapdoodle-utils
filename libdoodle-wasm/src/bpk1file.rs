@@ -5,12 +5,12 @@ use wasm_bindgen::{JsError, prelude::wasm_bindgen};
 
 use crate::{bpk1block::FrontendBPK1Block, create_frontend_error};
 
-#[wasm_bindgen(js_name = BPK1File)]
+#[wasm_bindgen(js_name = BackendBPK1File)]
 pub struct FrontendBPK1File {
     blocks: Vec<Rc<BPK1Block>>,
 }
 
-#[wasm_bindgen(js_class = BPK1File)]
+#[wasm_bindgen(js_class = BackendBPK1File)]
 impl FrontendBPK1File {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {

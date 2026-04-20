@@ -19,7 +19,7 @@ use wasm_bindgen::{JsError, prelude::wasm_bindgen};
 
 use crate::create_frontend_error;
 
-#[wasm_bindgen(js_name = BPK1Block)]
+#[wasm_bindgen(js_name = BackendBPK1Block)]
 pub struct FrontendBPK1Block {
     pub(crate) block: Weak<BPK1Block>,
 }
@@ -63,7 +63,7 @@ impl FrontendBPK1Block {
     }
 }
 
-#[wasm_bindgen(js_class = BPK1Block)]
+#[wasm_bindgen(js_class = BackendBPK1Block)]
 impl FrontendBPK1Block {
     #[wasm_bindgen(getter)]
     pub fn name(&self) -> Result<String, JsError> {

@@ -1,8 +1,8 @@
 import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
     init as initWasm,
-    BPK1Block,
-    BPK1File
+    BackendBPK1Block,
+    BackendBPK1File
 } from "./wasm/libdoodle_wasm";
 export * from "./wasm/libdoodle_wasm";
 export type * from "./wasm/libdoodle_wasm";
@@ -16,15 +16,15 @@ await init();
 
 export class OpenedFile {
     public fileName: string = $state("unnamed.bpk1");
-    public bpk1File: BPK1File;
-    public selectedBlock: BPK1Block | null = $state.raw(null);
-    private _blocks: BPK1Block[] = $state([]);
+    public bpk1File: BackendBPK1File;
+    public selectedBlock: BackendBPK1Block | null = $state.raw(null);
+    private _blocks: BackendBPK1Block[] = $state([]);
 
     constructor() {
-        this.bpk1File = new BPK1File();
+        this.bpk1File = new BackendBPK1File();
     }
 
-    private static fromWrapped(name: string, file: BPK1File) {
+    private static fromWrapped(name: string, file: BackendBPK1File) {
         let of = new OpenedFile();
         of.fileName = name;
         of.bpk1File = file;
@@ -57,7 +57,7 @@ export class OpenedFile {
 
     public static fromBytes(name: string, data: Uint8Array<ArrayBufferLike>) {
         try {
-            return OpenedFile.fromWrapped(name, BPK1File.from_bpk1_bytes(data));
+            return OpenedFile.fromWrapped(name, BackendBPK1File.from_bpk1_bytes(data));
         } catch (e) {
             console.warn(e)
             // TODO: Smarter errors from Rust
@@ -100,7 +100,7 @@ export class OpenedFile {
     }
 }
 
-export function downloadBPK1Block(block: BPK1Block) {
+export function downloadBPK1Block(block: BackendBPK1Block) {
     invokeDownload(block.data, `${block.name}.bin`);
 }
 
@@ -120,7 +120,7 @@ export async function parse_l4_data(src: number[][], width: number, height: numb
     return await canvas.convertToBlob();
 }
 
-export async function parse_and_flatten_stationery(block: BPK1Block) {
+export async function parse_and_flatten_stationery(block: BackendBPK1Block) {
     let result = new OffscreenCanvas(250, 230);
     let stationery = block.parse_stationery();
     let ctx2d = result.getContext("2d")!;
