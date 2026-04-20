@@ -1,7 +1,7 @@
 <script lang="ts">
     import Card from "../../components/Card.svelte";
     import type {
-        BPK1Block,
+        BackendBPK1Block,
         Colors,
         OpenedFile,
         RGBA,
@@ -12,7 +12,7 @@
         block,
     }: {
         file: OpenedFile;
-        block: BPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 
     let colors: Colors = $derived(block.parse_colors());

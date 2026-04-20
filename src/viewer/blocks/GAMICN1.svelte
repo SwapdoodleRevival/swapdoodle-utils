@@ -1,6 +1,6 @@
 <script lang="ts">
     import type {
-        BPK1Block,
+        BackendBPK1Block,
         OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import { openNewFile } from "../../lib/files.svelte";
@@ -11,19 +11,18 @@
         block,
     }: {
         file: OpenedFile;
-        block: BPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 </script>
 
 <Card style="info" title="About GAMICN1" class="mb-2">
-    GAMICN1 blocks contain game icon data (as seen in stickers).
-
-    GAMICN1 blocks themselves are BPK1 archives.
+    GAMICN1 blocks contain game icon data (as seen in stickers). GAMICN1 blocks
+    themselves are BPK1 archives.
     <div class="mt-2">
         <button
             class="btn std"
             onclick={() => {
-                openNewFile(block.data, `${file.fileName} - GAMICN1.bpk` );
+                openNewFile(block.data, `${file.fileName} - GAMICN1.bpk`);
             }}>Open in new tab</button
         >
     </div>

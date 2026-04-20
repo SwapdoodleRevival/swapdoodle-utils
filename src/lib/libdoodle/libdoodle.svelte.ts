@@ -95,7 +95,7 @@ export class OpenedFile {
     }
 
     public addBlock(name: string, bytes: Uint8Array<ArrayBuffer>) {
-        this.bpk1File.insert_bpk1_block(name, bytes);
+        this.bpk1File.push_bpk1_block(name, bytes);
         this.updateBlocks();
     }
 }

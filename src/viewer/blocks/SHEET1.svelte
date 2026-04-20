@@ -1,7 +1,7 @@
 <script lang="ts">
     import Doodle from "../../components/Doodle.svelte";
     import type {
-        BPK1Block,
+        BackendBPK1Block,
         Color,
         Colors,
         OpenedFile,
@@ -14,7 +14,7 @@
         block,
     }: {
         file: OpenedFile;
-        block: BPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 
     let availableColors = $derived(

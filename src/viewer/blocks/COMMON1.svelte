@@ -2,8 +2,8 @@
     import Card from "../../components/Card.svelte";
     import type {
         BasicDateTime,
-        BPK1Block,
-        CommonInfo,
+        BackendBPK1Block,
+        FrontendCommonInfo,
         OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
 
@@ -12,10 +12,10 @@
         block,
     }: {
         file: OpenedFile;
-        block: BPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 
-    let common_info: CommonInfo = $derived(block.parse_commoninfo());
+    let common_info: FrontendCommonInfo = $derived(block.parse_commoninfo());
 
     function basic_date_time_to_date(date: BasicDateTime): string {
         const datePart = `${(2000 + date.year).toString().padStart(4, "0")}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;

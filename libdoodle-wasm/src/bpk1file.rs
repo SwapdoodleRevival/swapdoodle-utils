@@ -30,13 +30,13 @@ impl FrontendBPK1File {
     }
 
     pub fn get_blocks(&self) -> Result<Vec<FrontendBPK1Block>, JsError> {
-        let mut result = Vec::<FrontendBPK1Block>::new();
-        for item in &self.blocks {
-            result.push(FrontendBPK1Block {
+        Ok(self
+            .blocks
+            .iter()
+            .map(|item| FrontendBPK1Block {
                 block: Rc::downgrade(item),
-            });
-        }
-        Ok(result)
+            })
+            .collect())
     }
 
     pub fn reorder_block(
@@ -44,21 +44,15 @@ impl FrontendBPK1File {
         moved_block: &FrontendBPK1Block,
         mut new_position: usize,
     ) -> Result<(), JsError> {
-        let p = self.blocks.iter().enumerate().find(|(_, k)| {
-            moved_block
-                .upgrade()
-                .map(|u| Rc::ptr_eq(&u, k))
-                .unwrap_or(false)
-        });
-        let (mut index, element) = match p {
-            Some(data) => data,
-            None => {
-                return Err(create_frontend_error(
-                    "BPK1File",
-                    "Block does not belong to this File",
-                ));
-            }
-        };
+        let p = self
+            .blocks
+            .iter()
+            .enumerate()
+            .find(|(_, k)| moved_block.upgrade().is_ok_and(|u| Rc::ptr_eq(&u, k)));
+
+        let (mut index, element) = p.ok_or_else(|| {
+            create_frontend_error("BPK1File", "Block does not belong to this File")
+        })?;
 
         if index != new_position {
             if new_position >= self.blocks.len() {
@@ -83,25 +77,20 @@ impl FrontendBPK1File {
                 .map(|rc| ptr::eq(el.as_ref(), rc.as_ref()))
                 .unwrap_or(false)
         });
-        match found {
-            Some((index, _)) => {
-                self.blocks.remove(index);
-                Ok(())
-            }
-            None => Err(create_frontend_error(
-                "BPK1File",
-                "Block does not belong to this File",
-            )),
-        }
+        let (index, _) = found.ok_or_else(|| {
+            create_frontend_error("BPK1File", "Block does not belong to this File")
+        })?;
+        self.blocks.remove(index);
+        Ok(())
     }
 
-    pub fn insert_bpk1_block(&mut self, name: String, bytes: Vec<u8>) -> Result<(), JsError> {
+    pub fn push_bpk1_block(&mut self, name: String, bytes: Vec<u8>) -> Result<(), JsError> {
         self.blocks.push(
-            (BPK1Block {
+            BPK1Block {
                 name: CString::from_str(&name)
                     .map_err(|e| create_frontend_error("BPK1 parser", &e.to_string()))?,
                 data: bytes,
-            })
+            }
             .into(),
         );
         Ok(())

@@ -1,11 +1,11 @@
 <script lang="ts">
     import HexEditor from "js-hex-editor/dist-svelte/HexEditor.svelte";
-    import type { RBPK1Block } from "../lib/libdoodle/libdoodle.svelte";
+    import type { BackendBPK1Block } from "../lib/libdoodle/libdoodle.svelte";
 
     let {
         block,
     }: {
-        block: RBPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 
     $effect(() => {
@@ -20,8 +20,11 @@
 <div>
     {#if displayed}
         <div class="editor mt-2">
-            <HexEditor data={block.data.buffer} height="400px" width="100%"
-            ></HexEditor>
+            <HexEditor
+                data={block.data.buffer as ArrayBuffer}
+                height="400px"
+                width="100%"
+            />
         </div>
     {/if}
     <button class="btn std mt-2" onclick={() => (displayed = !displayed)}>

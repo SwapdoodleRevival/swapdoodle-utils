@@ -6,7 +6,7 @@ use std::{
 use libdoodle::{
     blocks::{
         colslt1::Colors,
-        common1::BasicDateTime,
+        common1::{BasicDateTime, CommonInfo},
         miistd1::{MiiData, MiiDataBytes},
         sheet1::Sheet,
     },
@@ -28,7 +28,7 @@ pub struct FrontendBPK1Block {
 #[tsify(into_wasm_abi)]
 // Using u128 to enforce the use of BigInt
 // This is a wasm-bindgen bug :(
-pub struct CommonInfo {
+pub struct FrontendCommonInfo {
     pub note_id: u128,
     pub reply_to_note_id: u128,
     pub sender_pid: u32,
@@ -55,11 +55,17 @@ impl From<MiiData> for MiiPreview {
 }
 
 impl FrontendBPK1Block {
-    pub fn upgrade(&self) -> Result<Rc<BPK1Block>, JsError> {
+    pub(crate) fn upgrade(&self) -> Result<Rc<BPK1Block>, JsError> {
         match self.block.upgrade() {
             Some(block) => Ok(block),
             None => Err(create_frontend_error("BPK1Block", "Reference has expired")),
         }
+    }
+}
+
+impl PartialEq for FrontendBPK1Block {
+    fn eq(&self, other: &Self) -> bool {
+        self.block.ptr_eq(&other.block)
     }
 }
 
@@ -76,7 +82,7 @@ impl FrontendBPK1Block {
     }
 
     pub fn is_equal(&self, rhs: &FrontendBPK1Block) -> bool {
-        self.block.ptr_eq(&rhs.block)
+        self.eq(rhs)
     }
 
     pub fn parse_colors(&self) -> Result<Colors, JsError> {
@@ -103,11 +109,10 @@ impl FrontendBPK1Block {
             .map_err(|e| create_frontend_error("MIISTD1 parser", &e.to_string()))
     }
 
-    pub fn parse_commoninfo(&self) -> Result<CommonInfo, JsError> {
-        let common_info =
-            libdoodle::blocks::common1::CommonInfo::try_from(self.upgrade()?.data.as_slice())
-                .map_err(|e| create_frontend_error("COMMON1 parser", &e.to_string()))?;
-        Ok(CommonInfo {
+    pub fn parse_commoninfo(&self) -> Result<FrontendCommonInfo, JsError> {
+        let common_info = CommonInfo::try_from(self.upgrade()?.data.as_slice())
+            .map_err(|e| create_frontend_error("COMMON1 parser", &e.to_string()))?;
+        Ok(FrontendCommonInfo {
             note_id: common_info.note_id as u128,
             reply_to_note_id: common_info.reply_to_note_id as u128,
             sender_pid: common_info.sender_pid,

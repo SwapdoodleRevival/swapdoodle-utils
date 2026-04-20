@@ -1,6 +1,6 @@
 <script lang="ts">
     import type {
-        BPK1Block,
+        BackendBPK1Block,
         OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
     import BlobImage from "../../components/BlobImage.svelte";
@@ -13,7 +13,7 @@
         block,
     }: {
         file: OpenedFile;
-        block: BPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 
     let stationery = $derived(block.parse_stationery());

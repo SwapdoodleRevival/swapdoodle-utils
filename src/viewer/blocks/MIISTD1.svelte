@@ -1,8 +1,7 @@
 <script lang="ts">
-    import BlobImage from "../../components/BlobImage.svelte";
     import Card from "../../components/Card.svelte";
     import type {
-        BPK1Block,
+        BackendBPK1Block,
         OpenedFile,
     } from "../../lib/libdoodle/libdoodle.svelte";
 
@@ -11,7 +10,7 @@
         block,
     }: {
         file: OpenedFile;
-        block: BPK1Block;
+        block: BackendBPK1Block;
     } = $props();
 
     let miidata = $derived(block.parse_mii_data());
