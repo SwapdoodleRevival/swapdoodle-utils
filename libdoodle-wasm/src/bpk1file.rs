@@ -107,23 +107,21 @@ impl FrontendBPK1File {
         Ok(())
     }
 
-    pub fn to_uncompressed_bpk1_archive(&mut self) -> Result<Vec<u8>, JsError> {
-        Ok(BPK1Blocks::bytes_from_bpk1_blocks(&self.blocks)
-            .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))?)
+    pub fn build_uncompressed_bpk1_archive(&mut self) -> Result<Vec<u8>, JsError> {
+        BPK1Blocks::bytes_from_bpk1_blocks(&self.blocks)
+            .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))
     }
 
-    pub fn to_lz11_bpk1_archive(&mut self, max_repeat_size: u32) -> Result<Vec<u8>, JsError> {
-        Ok(libdoodle::lzss::compress_lz11_from_slice(
-            &self.to_uncompressed_bpk1_archive()?,
+    pub fn build_lz11_bpk1_archive(&mut self, max_repeat_size: u32) -> Result<Vec<u8>, JsError> {
+        libdoodle::lzss::compress_lz11_from_slice(
+            &self.build_uncompressed_bpk1_archive()?,
             max_repeat_size,
         )
-        .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))?)
+        .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))
     }
 
-    pub fn to_lz10_bpk1_archive(&mut self) -> Result<Vec<u8>, JsError> {
-        Ok(
-            libdoodle::lzss::compress_lz10_from_slice(&self.to_uncompressed_bpk1_archive()?)
-                .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))?,
-        )
+    pub fn build_lz10_bpk1_archive(&mut self) -> Result<Vec<u8>, JsError> {
+        libdoodle::lzss::compress_lz10_from_slice(&self.build_uncompressed_bpk1_archive()?)
+            .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))
     }
 }

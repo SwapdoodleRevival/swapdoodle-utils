@@ -1,5 +1,5 @@
-mod bpk1file;
 mod bpk1block;
+mod bpk1file;
 
 use wasm_bindgen::prelude::*;
 

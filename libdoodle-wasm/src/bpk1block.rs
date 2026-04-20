@@ -97,7 +97,7 @@ impl FrontendBPK1Block {
     pub fn parse_mii_data(&self) -> Result<MiiPreview, JsError> {
         let mut mii_data: MiiDataBytes = [0; 0x5C];
         let mut slice: &[u8] = &self.upgrade()?.data;
-        slice.read(&mut mii_data)?;
+        slice.read_exact(&mut mii_data)?;
         MiiData::try_from(mii_data)
             .map(|v| v.into())
             .map_err(|e| create_frontend_error("MIISTD1 parser", &e.to_string()))

@@ -75,14 +75,14 @@ export class OpenedFile {
 
     public download(new_filename: string | null = null) {
         invokeDownload(
-            this.bpk1File.to_uncompressed_bpk1_archive(),
+            this.bpk1File.build_uncompressed_bpk1_archive(),
             new_filename ?? this.fileName
         )
     }
 
     public downloadCompressed(new_filename: string | null = null) {
         invokeDownload(
-            this.bpk1File.to_lz11_bpk1_archive(20000),
+            this.bpk1File.build_lz11_bpk1_archive(20000),
             new_filename ?? this.fileName
         )
     }
