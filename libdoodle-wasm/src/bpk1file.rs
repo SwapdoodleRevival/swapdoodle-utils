@@ -39,6 +39,44 @@ impl FrontendBPK1File {
         Ok(result)
     }
 
+    pub fn reorder_block(
+        &mut self,
+        moved_block: &FrontendBPK1Block,
+        mut new_position: usize,
+    ) -> Result<(), JsError> {
+        let p = self.blocks.iter().enumerate().find(|(_, k)| {
+            moved_block
+                .upgrade()
+                .map(|u| Rc::ptr_eq(&u, k))
+                .unwrap_or(false)
+        });
+        let (mut index, element) = match p {
+            Some(data) => data,
+            None => {
+                return Err(create_frontend_error(
+                    "BPK1File",
+                    "Block does not belong to this File",
+                ));
+            }
+        };
+
+        if index != new_position {
+            if new_position >= self.blocks.len() {
+                new_position = self.blocks.len();
+            }
+
+            self.blocks.insert(new_position, element.clone());
+
+            if index > new_position {
+                index += 1;
+            }
+
+            self.blocks.remove(index);
+        }
+
+        Ok(())
+    }
+
     pub fn delete_block(&mut self, to_delete: &FrontendBPK1Block) -> Result<(), JsError> {
         let found = self.blocks.iter().enumerate().find(|(_, el)| {
             (to_delete.upgrade())

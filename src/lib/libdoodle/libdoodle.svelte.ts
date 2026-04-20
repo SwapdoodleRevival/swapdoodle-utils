@@ -86,6 +86,18 @@ export class OpenedFile {
             new_filename ?? this.fileName
         )
     }
+
+    public reorderFile(i: number, pos: number) {
+        console.log(`Reorder ${i} to ${pos}`);
+        let target = this._blocks[i];
+        this.bpk1File.reorder_block(target, pos);
+        this.updateBlocks();
+    }
+
+    public addBlock(name: string, bytes: Uint8Array<ArrayBuffer>) {
+        this.bpk1File.insert_bpk1_block(name, bytes);
+        this.updateBlocks();
+    }
 }
 
 export function downloadBPK1Block(block: BPK1Block) {

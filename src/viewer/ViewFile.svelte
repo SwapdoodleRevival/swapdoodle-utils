@@ -38,14 +38,12 @@
         let selected = files?.[0];
 
         if (selected) {
-            let string = prompt("Block name? (max 7 characters)");
+            let string = prompt("Enter block name (leave empty to cancel):");
             if (string) {
-                let name = string.substring(0, 7);
-
-                file.blocks.push({
-                    name: name,
-                    data: new Uint8Array(await selected.arrayBuffer()),
-                });
+                file.addBlock(
+                    string,
+                    new Uint8Array(await selected.arrayBuffer()),
+                );
             }
         }
     }
@@ -81,16 +79,7 @@
         if (i === dragIndex) {
             return;
         }
-        let target = file.blocks[i];
-        let move = file.blocks.splice(dragIndex, 1)[0];
-        i = file.blocks.indexOf(target);
-        i += pos === 1 ? 0 : 1;
-        if (i < 0) {
-            i = 0;
-        } else if (i >= file.blocks.length) {
-            i = file.blocks.length;
-        }
-        file.blocks.splice(i, 0, move);
+        file.reorderFile(dragIndex, i + (pos === 1 ? 0 : 1));
     }
 </script>
 
@@ -130,6 +119,7 @@
                 <div
                     draggable="true"
                     ondragstart={(e) => {
+                        console.log("Start dragging", i);
                         dragIndex = i;
                     }}
                     role="listitem"
