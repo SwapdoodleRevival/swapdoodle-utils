@@ -98,7 +98,7 @@
 {/snippet}
 
 <div class="flex grow overflow-y-hidden">
-    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100 overflow-y-auto">
+    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100 overflow-y-auto overflow-x-hidden">
         {@render header("File options")}
 
         <button class={buttonClass(false)} onclick={() => file.download()}>
