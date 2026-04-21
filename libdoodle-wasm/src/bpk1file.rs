@@ -29,54 +29,46 @@ impl FrontendBPK1File {
         })
     }
 
-    pub fn get_blocks(&self) -> Result<Vec<FrontendBPK1Block>, JsError> {
-        Ok(self
-            .blocks
+    pub fn get_blocks(&self) -> Vec<FrontendBPK1Block> {
+        self.blocks
             .iter()
             .map(|item| FrontendBPK1Block {
                 block: Rc::downgrade(item),
             })
-            .collect())
+            .collect()
     }
 
     pub fn reorder_block(
         &mut self,
-        moved_block: &FrontendBPK1Block,
-        mut new_position: usize,
+        block_position: usize,
+        new_position: usize,
     ) -> Result<(), JsError> {
-        let p = self
-            .blocks
-            .iter()
-            .enumerate()
-            .find(|(_, k)| moved_block.upgrade().is_ok_and(|u| Rc::ptr_eq(&u, k)));
+        let max = usize::max(block_position, new_position);
 
-        let (mut index, element) = p.ok_or_else(|| {
-            create_frontend_error("BPK1File", "Block does not belong to this File")
-        })?;
+        if max >= self.blocks.len() {
+            return Err(create_frontend_error("BPK1File", "Index out of range"));
+        }
 
-        if index != new_position {
-            if new_position >= self.blocks.len() {
-                new_position = self.blocks.len();
+        if block_position != new_position {
+            let min = usize::min(block_position, new_position);
+            let inner_slice = &mut self.blocks[min..=max];
+            if block_position < new_position {
+                inner_slice.rotate_left(1);
+            } else {
+                inner_slice.rotate_right(1);
             }
-
-            self.blocks.insert(new_position, element.clone());
-
-            if index > new_position {
-                index += 1;
-            }
-
-            self.blocks.remove(index);
         }
 
         Ok(())
     }
 
     pub fn delete_block(&mut self, to_delete: &FrontendBPK1Block) -> Result<(), JsError> {
-        let found = self.blocks.iter().enumerate().find(|(_, el)| {
-            (to_delete.upgrade())
-                .map(|rc| ptr::eq(el.as_ref(), rc.as_ref()))
-                .unwrap_or(false)
-        });
+        let block = to_delete.upgrade()?;
+        let found = self
+            .blocks
+            .iter()
+            .enumerate()
+            .find(|(_, el)| Rc::ptr_eq(&block, el));
         let (index, _) = found.ok_or_else(|| {
             create_frontend_error("BPK1File", "Block does not belong to this File")
         })?;

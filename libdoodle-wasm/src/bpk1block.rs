@@ -56,10 +56,9 @@ impl From<MiiData> for MiiPreview {
 
 impl FrontendBPK1Block {
     pub(crate) fn upgrade(&self) -> Result<Rc<BPK1Block>, JsError> {
-        match self.block.upgrade() {
-            Some(block) => Ok(block),
-            None => Err(create_frontend_error("BPK1Block", "Reference has expired")),
-        }
+        self.block
+            .upgrade()
+            .ok_or_else(|| create_frontend_error("BPK1Block", "Reference has expired"))
     }
 }
 
@@ -68,6 +67,7 @@ impl PartialEq for FrontendBPK1Block {
         self.block.ptr_eq(&other.block)
     }
 }
+impl Eq for FrontendBPK1Block {}
 
 #[wasm_bindgen(js_class = BackendBPK1Block)]
 impl FrontendBPK1Block {

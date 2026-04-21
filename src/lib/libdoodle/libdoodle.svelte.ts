@@ -70,7 +70,10 @@ export class OpenedFile {
     }
 
     public updateBlocks() {
-        this._blocks = this.bpk1File.get_blocks();
+        let blocks = this.bpk1File.get_blocks().map(block =>
+            this._blocks.find(bfind => bfind.is_equal(block)) ?? block
+        )
+        this._blocks = blocks;
     }
 
     public download(new_filename: string | null = null) {
@@ -88,9 +91,7 @@ export class OpenedFile {
     }
 
     public reorderFile(i: number, pos: number) {
-        console.log(`Reorder ${i} to ${pos}`);
-        let target = this._blocks[i];
-        this.bpk1File.reorder_block(target, pos);
+        this.bpk1File.reorder_block(i, pos);
         this.updateBlocks();
     }
 

@@ -12,6 +12,7 @@
     import { pushDialog } from "../lib/dialog.svelte";
     import DropTarget from "../components/DropTarget.svelte";
     import HexView from "../components/HexView.svelte";
+    import { flip } from "svelte/animate";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -72,14 +73,14 @@
         );
     }
 
-    function reorderFile(i: number, pos: number) {
+    function reorderFile(i: number) {
         if (dragIndex === undefined) {
             return;
         }
         if (i === dragIndex) {
             return;
         }
-        file.reorderFile(dragIndex, i + (pos === 1 ? 0 : 1));
+        file.reorderFile(dragIndex, i);
     }
 </script>
 
@@ -110,33 +111,35 @@
         </button>
 
         {@render header("BPK1 Blocks")}
-        {#each file.blocks as block, i}
-            <DropTarget
-                ondrop={(pos) => {
-                    reorderFile(i, pos);
-                }}
-            >
-                <div
-                    draggable="true"
-                    ondragstart={(e) => {
-                        console.log("Start dragging", i);
-                        dragIndex = i;
+        {#each file.blocks as block, i (block)}
+            <div animate:flip={{duration: 700}}>
+                <DropTarget
+                    ondrop={() => {
+                        reorderFile(i);
                     }}
-                    role="listitem"
                 >
-                    <button
-                        class="{buttonClass(
-                            file.selectedBlock?.is_equal(block) ?? false,
-                        )} w-full"
-                        onclick={() => {
-                            file.selectedBlock = block;
+                    <div
+                        draggable="true"
+                        ondragstart={(e) => {
+                            dragIndex = i;
                         }}
+                        role="listitem"
                     >
-                        {block.name}
-                    </button>
-                </div>
-            </DropTarget>
+                        <button
+                            class="{buttonClass(
+                                file.selectedBlock?.is_equal(block) ?? false,
+                            )} w-full"
+                            onclick={() => {
+                                file.selectedBlock = block;
+                            }}
+                        >
+                            {block.name}
+                        </button>
+                    </div>
+                </DropTarget>
+            </div>
         {/each}
+
         <button class={buttonClass(false)} onclick={insertBlock}>
             <Icon path={mdiPlus} type="mdi" color="black"></Icon>
             Insert block
