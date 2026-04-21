@@ -37,10 +37,10 @@ export async function openNewFile(file: File | Uint8Array<ArrayBufferLike>, name
         files.push(bpk1File);
         setCurrentFile(bpk1File);
     } catch (e) {
-        let message = (e as Partial<Error>)?.message;
+        let message = `${(e as Partial<Error>)?.message ?? ""}\nIs the file you opened a valid Swapdoodle archive?`.trim();
         warn({
             title: "Error reading file",
-            message: message ?? "Unknown error",
+            message
         });
     }
 }

@@ -10,7 +10,9 @@
     {#each toasts().entries() as [key, t] (key)}
         <div transition:scale class="shadow-2xl mb-2">
             <Card style={t.type} title={t.title} class="flex-hidden">
-                {t.message}
+                <div class="whitespace-pre">
+                    {t.message}
+                </div>
             </Card>
         </div>
     {/each}

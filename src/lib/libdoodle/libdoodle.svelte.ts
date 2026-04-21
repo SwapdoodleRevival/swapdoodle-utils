@@ -56,13 +56,7 @@ export class OpenedFile {
     }
 
     public static fromBytes(name: string, data: Uint8Array<ArrayBufferLike>) {
-        try {
-            return OpenedFile.fromWrapped(name, BackendBPK1File.from_bpk1_bytes(data));
-        } catch (e) {
-            console.warn(e)
-            // TODO: Smarter errors from Rust
-            throw new Error("This file does not seem to be a Swapdoodle archive.")
-        }
+        return OpenedFile.fromWrapped(name, BackendBPK1File.from_bpk1_bytes(data));
     }
 
     public get blocks() {
