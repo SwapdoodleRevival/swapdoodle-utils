@@ -84,14 +84,21 @@
     }
 </script>
 
-{#snippet header(label: string)}
-    <div class="p-3 bg-yellow-200 border-b-2 border-b-yellow-700 font-bold">
-        {label}
+{#snippet header(title: string, subtitle: string | null)}
+    <div class="p-3 bg-yellow-200 border-b-2 border-b-yellow-700">
+        <div class="font-bold">
+            {title}
+        </div>
+        {#if subtitle}
+            <div class="text-xs">
+                {subtitle}
+            </div>
+        {/if}
     </div>
 {/snippet}
 
-<div class="flex grow">
-    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100">
+<div class="flex grow overflow-y-hidden">
+    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100 overflow-y-auto">
         {@render header("File options")}
 
         <button class={buttonClass(false)} onclick={() => file.download()}>
@@ -110,9 +117,9 @@
             Close file
         </button>
 
-        {@render header("BPK1 Blocks")}
+        {@render header("BPK1 Blocks", "Drag to change order.")}
         {#each file.blocks as block, i (block)}
-            <div animate:flip={{duration: 700}}>
+            <div animate:flip={{ duration: 700 }}>
                 <DropTarget
                     ondrop={() => {
                         reorderFile(i);

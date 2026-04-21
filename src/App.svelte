@@ -1,5 +1,4 @@
 <script lang="ts">
-    import packageFile from "../package.json";
     import Toast from "./components/Toast.svelte";
     import ViewFile from "./viewer/ViewFile.svelte";
     import Dialog from "./components/Dialog.svelte";
@@ -139,7 +138,6 @@
                 onclick={fileOpen}
             >
                 <h1 class="font-bold text-6xl">Swapdoodle Utils</h1>
-                <p class="mb-4">version: {packageFile.version}</p>
                 <p class="text-lg">
                     Click here or drag a file onto this page to open it
                 </p>
