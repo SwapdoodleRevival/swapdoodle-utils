@@ -1,10 +1,11 @@
-use std::{default, ffi::CString, ptr, rc::Rc, str::FromStr};
+use std::{ffi::CString, rc::Rc, str::FromStr};
 
 use libdoodle::bpk1::{BPK1Block, BPK1Blocks, BPK1File};
 use wasm_bindgen::{JsError, prelude::wasm_bindgen};
 
 use crate::{bpk1block::FrontendBPK1Block, create_frontend_error};
 
+#[derive(Default)]
 #[wasm_bindgen(js_name = BackendBPK1File)]
 pub struct FrontendBPK1File {
     blocks: Vec<Rc<BPK1Block>>,
@@ -14,9 +15,7 @@ pub struct FrontendBPK1File {
 impl FrontendBPK1File {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            blocks: default::Default::default(),
-        }
+        Default::default()
     }
 
     pub fn from_bpk1_bytes(bytes: Vec<u8>) -> Result<Self, JsError> {

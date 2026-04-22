@@ -103,9 +103,11 @@ impl FrontendBPK1Block {
     pub fn parse_mii_data(&self) -> Result<MiiPreview, JsError> {
         let mut mii_data: MiiDataBytes = [0; 0x5C];
         let mut slice: &[u8] = &self.upgrade()?.data;
-        slice.read_exact(&mut mii_data)?;
+        slice
+            .read_exact(&mut mii_data)
+            .map_err(|_| create_frontend_error("MIISTD1 parser", "Mii data too short"))?;
         MiiData::try_from(mii_data)
-            .map(|v| v.into())
+            .map(Into::into)
             .map_err(|e| create_frontend_error("MIISTD1 parser", &e.to_string()))
     }
 
