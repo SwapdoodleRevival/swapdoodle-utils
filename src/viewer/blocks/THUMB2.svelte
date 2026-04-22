@@ -1,15 +1,15 @@
 <script lang="ts">
     import BlobImage from "../../components/BlobImage.svelte";
     import Card from "../../components/Card.svelte";
-    import type { BPK1File } from "../../lib/libdoodle/libdoodle.svelte";
-    import type { BPK1Block } from "../../lib/libdoodle/wasm/libdoodle_wasm";
+    import type { OpenedFile } from "../../lib/libdoodle/libdoodle.svelte";
+    import type { BackendBPK1Block } from "../../lib/libdoodle/wasm/libdoodle_wasm";
 
     let {
         file,
         block,
     }: {
-        file: BPK1File,
-        block: BPK1Block;
+        file: OpenedFile;
+        block: BackendBPK1Block;
     } = $props();
 
     let blob = $derived(new Blob([block.data as BlobPart]));

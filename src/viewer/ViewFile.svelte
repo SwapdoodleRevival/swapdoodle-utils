@@ -1,5 +1,9 @@
 <script lang="ts">
-    import { BPK1File } from "../lib/libdoodle/libdoodle.svelte";
+    import {
+        BackendBPK1File,
+        downloadBPK1Block,
+        OpenedFile,
+    } from "../lib/libdoodle/libdoodle.svelte";
     import type { SvelteComponent } from "svelte";
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
@@ -8,6 +12,7 @@
     import { pushDialog } from "../lib/dialog.svelte";
     import DropTarget from "../components/DropTarget.svelte";
     import HexView from "../components/HexView.svelte";
+    import { flip } from "svelte/animate";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -20,7 +25,7 @@
         file,
         onclose,
     }: {
-        file: BPK1File;
+        file: OpenedFile;
         onclose: () => any;
     } = $props();
 
@@ -34,14 +39,12 @@
         let selected = files?.[0];
 
         if (selected) {
-            let string = prompt("Block name? (max 7 characters)");
+            let string = prompt("Enter block name (leave empty to cancel):");
             if (string) {
-                let name = string.substring(0, 7);
-
-                file.blocks.push({
-                    name: name,
-                    data: new Uint8Array(await selected.arrayBuffer()),
-                });
+                file.addBlock(
+                    string,
+                    new Uint8Array(await selected.arrayBuffer()),
+                );
             }
         }
     }
@@ -70,46 +73,41 @@
         );
     }
 
-    function reorderFile(i: number, pos: number) {
+    function reorderFile(i: number) {
         if (dragIndex === undefined) {
             return;
         }
         if (i === dragIndex) {
             return;
         }
-        let target = file.blocks[i];
-        let move = file.blocks.splice(dragIndex, 1)[0];
-        i = file.blocks.indexOf(target);
-        i += pos === 1 ? 0 : 1;
-        if (i < 0) {
-            i = 0;
-        } else if (i >= file.blocks.length) {
-            i = file.blocks.length;
-        }
-        file.blocks.splice(i, 0, move);
+        file.reorderFile(dragIndex, i);
     }
 </script>
 
-{#snippet header(label: string)}
-    <div class="p-3 bg-yellow-200 border-b-2 border-b-yellow-700 font-bold">
-        {label}
+{#snippet header(title: string, subtitle: string | null)}
+    <div class="p-3 bg-yellow-200 border-b-2 border-b-yellow-700">
+        <div class="font-bold">
+            {title}
+        </div>
+        {#if subtitle}
+            <div class="text-xs">
+                {subtitle}
+            </div>
+        {/if}
     </div>
 {/snippet}
 
-<div class="flex grow">
-    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100">
+<div class="flex grow overflow-y-hidden">
+    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100 overflow-y-auto overflow-x-hidden">
         {@render header("File options")}
 
-        <button
-            class={buttonClass(false)}
-            onclick={() => file.downloadDecompressedBpk()}
-        >
+        <button class={buttonClass(false)} onclick={() => file.download()}>
             <Icon path={mdiDownload} type="mdi" color="black"></Icon>
             Save BPK1 (uncompressed)
         </button>
         <button
             class={buttonClass(false)}
-            onclick={() => file.downloadCompressedBpk()}
+            onclick={() => file.downloadCompressed()}
         >
             <Icon path={mdiDownload} type="mdi" color="black"></Icon>
             Save BPK1 (compressed)
@@ -119,31 +117,36 @@
             Close file
         </button>
 
-        {@render header("BPK1 Blocks")}
+        {@render header("BPK1 Blocks", "Drag to change order.")}
         {#each file.blocks as block, i (block)}
-            <DropTarget
-                ondrop={(pos) => {
-                    reorderFile(i, pos);
-                }}
-            >
-                <div
-                    draggable="true"
-                    ondragstart={(e) => {
-                        dragIndex = i;
+            <div animate:flip={{ duration: 700 }}>
+                <DropTarget
+                    ondrop={() => {
+                        reorderFile(i);
                     }}
-                    role="listitem"
                 >
-                    <button
-                        class="{buttonClass(
-                            file.selectedBlock === block,
-                        )} w-full"
-                        onclick={() => file.selectBlock(i)}
+                    <div
+                        draggable="true"
+                        ondragstart={(e) => {
+                            dragIndex = i;
+                        }}
+                        role="listitem"
                     >
-                        {block.name}
-                    </button>
-                </div>
-            </DropTarget>
+                        <button
+                            class="{buttonClass(
+                                file.selectedBlock?.is_equal(block) ?? false,
+                            )} w-full"
+                            onclick={() => {
+                                file.selectedBlock = block;
+                            }}
+                        >
+                            {block.name}
+                        </button>
+                    </div>
+                </DropTarget>
+            </div>
         {/each}
+
         <button class={buttonClass(false)} onclick={insertBlock}>
             <Icon path={mdiPlus} type="mdi" color="black"></Icon>
             Insert block
@@ -154,14 +157,17 @@
             <div class="flex flex-wrap gap-2 mb-2">
                 <button
                     class="btn std flex gap-2"
-                    onclick={() => file.downloadBpkBlock(file.selectedBlock!)}
+                    onclick={() => downloadBPK1Block(file.selectedBlock!)}
                 >
                     <Icon path={mdiDownload} type="mdi" color="black"></Icon>
                     Save block
                 </button>
                 <button
                     class="btn std flex gap-2"
-                    onclick={() => file.deleteSelectedBlock()}
+                    onclick={() => {
+                        file.bpk1File.delete_block(file.selectedBlock!);
+                        file.updateBlocks();
+                    }}
                 >
                     <Icon path={mdiTrashCan} type="mdi" color="black"></Icon>
                     Delete block

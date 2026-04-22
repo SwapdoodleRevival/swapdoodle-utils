@@ -1,22 +1,21 @@
 <script lang="ts">
     import Card from "../../components/Card.svelte";
     import type {
-        BPK1Block,
-        BPK1File,
+        BackendBPK1Block,
         Colors,
+        OpenedFile,
         RGBA,
     } from "../../lib/libdoodle/libdoodle.svelte";
-    import { parse_colors } from "../../lib/libdoodle/libdoodle.svelte";
 
     let {
         file,
         block,
     }: {
-        file: BPK1File;
-        block: BPK1Block;
+        file: OpenedFile;
+        block: BackendBPK1Block;
     } = $props();
 
-    let colors: Colors = $derived(parse_colors(block));
+    let colors: Colors = $derived(block.parse_colors());
 
     function getCSSFromRGBA(rgba: RGBA) {
         return `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;

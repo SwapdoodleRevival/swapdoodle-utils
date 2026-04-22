@@ -1,11 +1,8 @@
 import { CanvasContextCreationError, invokeDownload } from "../utils";
 import loadWasm, {
     init as initWasm,
-    parse_bpk1,
-    build_bpk1,
-    type BPK1Block,
-    parse_stationery,
-    compress_lz11,
+    BackendBPK1Block,
+    BackendBPK1File
 } from "./wasm/libdoodle_wasm";
 export * from "./wasm/libdoodle_wasm";
 export type * from "./wasm/libdoodle_wasm";
@@ -17,15 +14,25 @@ async function init() {
 
 await init();
 
-export class BPK1File {
+export class OpenedFile {
     public fileName: string = $state("unnamed.bpk1");
-    public blocks: BPK1Block[] = $state([])
-    public selectedBlock: BPK1Block | null = $state.raw(null);
+    public bpk1File: BackendBPK1File;
+    public selectedBlock: BackendBPK1Block | null = $state.raw(null);
+    private _blocks: BackendBPK1Block[] = $state([]);
 
-    // disable direct construction - use readFile
-    private constructor() { };
+    constructor() {
+        this.bpk1File = new BackendBPK1File();
+    }
 
-    public static readFile(file: File): Promise<BPK1File> {
+    private static fromWrapped(name: string, file: BackendBPK1File) {
+        let of = new OpenedFile();
+        of.fileName = name;
+        of.bpk1File = file;
+        of.updateBlocks();
+        return of;
+    }
+
+    public static readFile(file: File): Promise<OpenedFile> {
         return new Promise((resolve, reject) => {
             let reader = new FileReader();
 
@@ -38,7 +45,7 @@ export class BPK1File {
 
                 let letterData = new Uint8Array(content);
                 try {
-                    resolve(await this.readUint8Array(letterData));
+                    resolve(OpenedFile.fromBytes(file.name, letterData));
                 } catch (e) {
                     reject(e);
                 }
@@ -48,46 +55,48 @@ export class BPK1File {
         })
     }
 
-    public static async readUint8Array(letterData: Uint8Array<ArrayBufferLike>) {
-        try {
-            let file = new BPK1File();
-            file.blocks = parse_bpk1(letterData);
-            return file;
-        } catch (e) {
-            console.warn(e)
-            // TODO: Smarter errors from Rust
-            throw new Error("This file does not seem to be a Swapdoodle archive.")
-        }
+    public static fromBytes(name: string, data: Uint8Array<ArrayBufferLike>) {
+        return OpenedFile.fromWrapped(name, BackendBPK1File.from_bpk1_bytes(data));
     }
 
-    public downloadDecompressedBpk() {
-        invokeDownload(build_bpk1(this.blocks), this.fileName);
+    public get blocks() {
+        return this._blocks;
     }
 
-    public downloadCompressedBpk() {
-        invokeDownload(compress_lz11(build_bpk1(this.blocks), 20000), this.fileName);
+    public updateBlocks() {
+        let blocks = this.bpk1File.get_blocks().map(block =>
+            this._blocks.find(bfind => bfind.is_equal(block)) ?? block
+        )
+        this._blocks = blocks;
     }
 
-    public downloadBpkBlock(block: BPK1Block) {
-        invokeDownload(block.data, `${block.name}.bin`)
+    public download(new_filename: string | null = null) {
+        invokeDownload(
+            this.bpk1File.build_uncompressed_bpk1_archive(),
+            new_filename ?? this.fileName
+        )
     }
 
-    public selectBlock(block: number) {
-        this.selectedBlock = this.blocks[block] ?? null;
+    public downloadCompressed(new_filename: string | null = null) {
+        invokeDownload(
+            this.bpk1File.build_lz11_bpk1_archive(20000),
+            new_filename ?? this.fileName
+        )
     }
 
-    public deleteSelectedBlock(): any {
-        if (!this.selectedBlock) {
-            return;
-        }
-
-        let block = this.blocks.indexOf(this.selectedBlock);
-        this.blocks.splice(block, 1)
-        if (this.blocks.length <= block) {
-            block = this.blocks.length - 1;
-        }
-        this.selectedBlock = this.blocks[block];
+    public reorderFile(i: number, pos: number) {
+        this.bpk1File.reorder_block(i, pos);
+        this.updateBlocks();
     }
+
+    public addBlock(name: string, bytes: Uint8Array<ArrayBuffer>) {
+        this.bpk1File.push_bpk1_block(name, bytes);
+        this.updateBlocks();
+    }
+}
+
+export function downloadBPK1Block(block: BackendBPK1Block) {
+    invokeDownload(block.data, `${block.name}.bin`);
 }
 
 export async function parse_l4_data(src: number[][], width: number, height: number) {
@@ -106,9 +115,9 @@ export async function parse_l4_data(src: number[][], width: number, height: numb
     return await canvas.convertToBlob();
 }
 
-export async function parse_and_flatten_stationery(block: BPK1Block) {
+export async function parse_and_flatten_stationery(block: BackendBPK1Block) {
     let result = new OffscreenCanvas(250, 230);
-    let stationery = parse_stationery(block);
+    let stationery = block.parse_stationery();
     let ctx2d = result.getContext("2d")!;
     let part3d = new OffscreenCanvas(256, 256);
     let partMask = new OffscreenCanvas(256, 256);

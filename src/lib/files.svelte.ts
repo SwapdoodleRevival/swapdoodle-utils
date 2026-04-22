@@ -1,8 +1,8 @@
-import { BPK1File } from "./libdoodle/libdoodle.svelte";
+import { OpenedFile } from "./libdoodle/libdoodle.svelte";
 import { warn } from "./toast.svelte";
 
-export let files: BPK1File[] = $state([]);
-let _currentFile: BPK1File | null = $state.raw(null);
+export let files: OpenedFile[] = $state([]);
+let _currentFile: OpenedFile | null = $state.raw(null);
 
 export function askForFile(): Promise<FileList | null> {
     let fileInput = document.createElement("input")
@@ -25,26 +25,22 @@ export function askForFile(): Promise<FileList | null> {
 
 export async function openNewFile(file: File | Uint8Array<ArrayBufferLike>, name: string | null = null) {
     try {
-        let bpk1File;
+        let bpk1File: OpenedFile;
         if (file instanceof File) {
             name ??= file.name;
-            bpk1File = await BPK1File.readFile(file);
+            bpk1File = await OpenedFile.readFile(file);
         }
         else {
-            bpk1File = await BPK1File.readUint8Array(file);
-        }
-
-        if (name) {
-            bpk1File.fileName = name;
+            bpk1File = await OpenedFile.fromBytes(name ?? "new-file.bpk1", file);
         }
 
         files.push(bpk1File);
         setCurrentFile(bpk1File);
     } catch (e) {
-        let message = (e as Partial<Error>)?.message;
+        let message = `${(e as Partial<Error>)?.message ?? ""}\nIs the file you opened a valid Swapdoodle archive?`.trim();
         warn({
             title: "Error reading file",
-            message: message ?? "Unknown error",
+            message
         });
     }
 }
@@ -53,7 +49,7 @@ export function getCurrentFile() {
     return _currentFile
 }
 
-export function setCurrentFile(newFile: BPK1File) {
+export function setCurrentFile(newFile: OpenedFile) {
     _currentFile = newFile
 }
 

@@ -1,38 +1,30 @@
 <script lang="ts">
     import Doodle from "../../components/Doodle.svelte";
     import type {
-        BPK1Block,
-        BPK1File,
+        BackendBPK1Block,
         Color,
         Colors,
+        OpenedFile,
         Sheet,
     } from "../../lib/libdoodle/libdoodle.svelte";
-    import {
-        parse_colors,
-        parse_sheet,
-    } from "../../lib/libdoodle/libdoodle.svelte";
     import Card from "../../components/Card.svelte";
-    import { onMount } from "svelte";
 
     let {
         file,
         block,
     }: {
-        file: BPK1File;
-        block: BPK1Block;
+        file: OpenedFile;
+        block: BackendBPK1Block;
     } = $props();
 
     let availableColors = $derived(
-        file.blocks.filter((k) => k.name === "COLSLT1"),
+        file.bpk1File.get_blocks().filter((k) => k.name === "COLSLT1"),
     );
 
-    let sheet: Sheet = $derived(parse_sheet(block));
-
-    let selectedColorsBlock: BPK1Block | null = $state(null);
+    let sheet: Sheet = $derived(block.parse_sheet());
 
     let backupColors: Colors = {
         colors: [
-            // ignore extra colors for now
             {
                 primary: { r: 255, g: 0, b: 0, a: 255 },
                 id: 0,
@@ -61,12 +53,8 @@
         ],
     };
 
-    onMount(() => {
-        selectedColorsBlock = availableColors ? availableColors[0] : null;
-    });
-
     let colors: Colors | null = $derived(
-        selectedColorsBlock ? parse_colors(selectedColorsBlock) : backupColors,
+        availableColors ? availableColors[0].parse_colors() : backupColors,
     );
 </script>
 
