@@ -1,6 +1,9 @@
 use std::{
+    cell::{Ref, RefCell},
+    ffi::CString,
     io::Read,
     rc::{Rc, Weak},
+    str::FromStr,
 };
 
 use libdoodle::{
@@ -21,7 +24,7 @@ use crate::create_frontend_error;
 
 #[wasm_bindgen(js_name = BackendBPK1Block)]
 pub struct FrontendBPK1Block {
-    pub(crate) block: Weak<BPK1Block>,
+    pub(crate) block: Weak<RefCell<BPK1Block>>,
 }
 
 #[derive(Tsify, Debug, Serialize)]
@@ -55,7 +58,7 @@ impl From<MiiData> for MiiPreview {
 }
 
 impl FrontendBPK1Block {
-    pub(crate) fn upgrade(&self) -> Result<Rc<BPK1Block>, JsError> {
+    pub(crate) fn upgrade(&self) -> Result<Rc<RefCell<BPK1Block>>, JsError> {
         self.block
             .upgrade()
             .ok_or_else(|| create_frontend_error("BPK1Block", "Reference has expired"))
@@ -73,12 +76,22 @@ impl Eq for FrontendBPK1Block {}
 impl FrontendBPK1Block {
     #[wasm_bindgen(getter)]
     pub fn name(&self) -> Result<String, JsError> {
-        Ok(self.upgrade()?.name.to_str()?.to_string())
+        Ok(self.upgrade()?.borrow().name.to_str()?.to_string())
     }
 
     #[wasm_bindgen(getter)]
     pub fn data(&self) -> Result<Vec<u8>, JsError> {
-        Ok(self.upgrade()?.data.clone())
+        Ok(self.upgrade()?.borrow().data.clone())
+    }
+
+    pub fn rename(&mut self, new_name: String) -> Result<(), JsError> {
+        self.upgrade()?.borrow_mut().name = CString::from_str(&new_name)?;
+        Ok(())
+    }
+
+    pub fn replace_contents(&mut self, data: Vec<u8>) -> Result<(), JsError> {
+        self.upgrade()?.borrow_mut().data = data;
+        Ok(())
     }
 
     pub fn is_equal(&self, rhs: &FrontendBPK1Block) -> bool {
@@ -86,23 +99,24 @@ impl FrontendBPK1Block {
     }
 
     pub fn parse_colors(&self) -> Result<Colors, JsError> {
-        Colors::try_from(self.upgrade()?.data.as_slice())
+        Colors::try_from(self.upgrade()?.borrow().data.as_slice())
             .map_err(|e| create_frontend_error("COLSLT1 parser", &e.to_string()))
     }
 
     pub fn parse_sheet(&self) -> Result<Sheet, JsError> {
-        Sheet::try_from(self.upgrade()?.data.as_slice())
+        Sheet::try_from(self.upgrade()?.borrow().data.as_slice())
             .map_err(|e| create_frontend_error("SHEET1 parser", &e.to_string()))
     }
 
     pub fn parse_stationery(&self) -> Result<Stationery, JsError> {
-        Stationery::try_from(self.upgrade()?.data.as_slice())
+        Stationery::try_from(self.upgrade()?.borrow().data.as_slice())
             .map_err(|e| create_frontend_error("STATIN1 parser", &e.to_string()))
     }
 
     pub fn parse_mii_data(&self) -> Result<MiiPreview, JsError> {
         let mut mii_data: MiiDataBytes = [0; 0x5C];
-        let mut slice: &[u8] = &self.upgrade()?.data;
+        let rc = self.upgrade()?;
+        let mut slice: &[u8] = &rc.borrow().data;
         slice
             .read_exact(&mut mii_data)
             .map_err(|_| create_frontend_error("MIISTD1 parser", "Mii data too short"))?;
@@ -112,7 +126,7 @@ impl FrontendBPK1Block {
     }
 
     pub fn parse_commoninfo(&self) -> Result<FrontendCommonInfo, JsError> {
-        let common_info = CommonInfo::try_from(self.upgrade()?.data.as_slice())
+        let common_info = CommonInfo::try_from(self.upgrade()?.borrow().data.as_slice())
             .map_err(|e| create_frontend_error("COMMON1 parser", &e.to_string()))?;
         Ok(FrontendCommonInfo {
             note_id: common_info.note_id as u128,
