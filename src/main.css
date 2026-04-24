@@ -33,3 +33,7 @@ body {
 .btn.std {
     @apply bg-yellow-200 py-2 px-3 shadow hover:bg-yellow-300 active:bg-yellow-400 transition;
 }
+
+.input {
+    @apply border-black border-b-[1px] bg-yellow-200 p-2 w-full;
+}

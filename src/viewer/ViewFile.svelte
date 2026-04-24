@@ -8,11 +8,18 @@
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
     import Icon from "@jamescoyle/svelte-icon";
-    import { mdiPlus, mdiDownload, mdiTrashCan, mdiClose } from "@mdi/js";
-    import { pushDialog } from "../lib/dialog.svelte";
+    import {
+        mdiPlus,
+        mdiDownload,
+        mdiTrashCan,
+        mdiClose,
+        mdiRename,
+    } from "@mdi/js";
+    import { pushConfirm, pushPrompt } from "../lib/dialog.svelte";
     import DropTarget from "../components/DropTarget.svelte";
     import HexView from "../components/HexView.svelte";
     import { flip } from "svelte/animate";
+    import { info } from "../lib/toast.svelte";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -39,7 +46,7 @@
         let selected = files?.[0];
 
         if (selected) {
-            let string = prompt("Enter block name (leave empty to cancel):");
+            let string = await pushPrompt("Enter block name", "");
             if (string) {
                 file.addBlock(
                     string,
@@ -50,16 +57,11 @@
     }
 
     async function close() {
-        let result = await pushDialog({
-            title: "Closing file",
-            message:
-                "Do you really want to close this file?\nAll unsaved changes will be lost.",
-            buttons: [
-                { id: "yes", label: "Yes" },
-                { id: "no", label: "No" },
-            ],
-        });
-        if (result === "yes") {
+        let result = await pushConfirm(
+            "Closing file",
+            "Do you really want to close this file?\nAll unsaved changes will be lost.",
+        );
+        if (result) {
             onclose();
         }
     }
@@ -84,7 +86,7 @@
     }
 </script>
 
-{#snippet header(title: string, subtitle: string | null)}
+{#snippet header(title: string, subtitle: string | null = null)}
     <div class="p-3 bg-yellow-200 border-b-2 border-b-yellow-700">
         <div class="font-bold">
             {title}
@@ -98,7 +100,9 @@
 {/snippet}
 
 <div class="flex grow overflow-y-hidden">
-    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100 overflow-y-auto overflow-x-hidden">
+    <div
+        class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100 overflow-y-auto overflow-x-hidden"
+    >
         {@render header("File options")}
 
         <button class={buttonClass(false)} onclick={() => file.download()}>
@@ -164,13 +168,39 @@
                 </button>
                 <button
                     class="btn std flex gap-2"
-                    onclick={() => {
-                        file.bpk1File.delete_block(file.selectedBlock!);
-                        file.updateBlocks();
+                    onclick={async () => {
+                        if (
+                            await pushConfirm("Delete block", "Are you sure?")
+                        ) {
+                            file.bpk1File.delete_block(file.selectedBlock!);
+                            file.updateBlocks();
+                        }
                     }}
                 >
                     <Icon path={mdiTrashCan} type="mdi" color="black"></Icon>
                     Delete block
+                </button>
+                <button
+                    class="btn std flex gap-2"
+                    onclick={async () => {
+                        let newName = await pushPrompt(
+                            "Rename block",
+                            "Enter the new name:",
+                        );
+                        if (newName) {
+                            file.selectedBlock?.rename(newName);
+                            file.updateBlocks();
+                            file.selectedBlock = file.selectedBlock;
+                        } else {
+                            info({
+                                title: "Rename block",
+                                message: "The block was not modified.",
+                            });
+                        }
+                    }}
+                >
+                    <Icon path={mdiRename} type="mdi" color="black"></Icon>
+                    Rename block
                 </button>
             </div>
 
