@@ -8,11 +8,18 @@
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
     import Icon from "@jamescoyle/svelte-icon";
-    import { mdiPlus, mdiDownload, mdiTrashCan, mdiClose } from "@mdi/js";
+    import {
+        mdiPlus,
+        mdiDownload,
+        mdiTrashCan,
+        mdiClose,
+        mdiRename,
+    } from "@mdi/js";
     import { pushConfirm, pushPrompt } from "../lib/dialog.svelte";
     import DropTarget from "../components/DropTarget.svelte";
     import HexView from "../components/HexView.svelte";
     import { flip } from "svelte/animate";
+    import { info } from "../lib/toast.svelte";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -172,6 +179,28 @@
                 >
                     <Icon path={mdiTrashCan} type="mdi" color="black"></Icon>
                     Delete block
+                </button>
+                <button
+                    class="btn std flex gap-2"
+                    onclick={async () => {
+                        let newName = await pushPrompt(
+                            "Rename block",
+                            "Enter the new name:",
+                        );
+                        if (newName) {
+                            file.selectedBlock?.rename(newName);
+                            file.updateBlocks();
+                            file.selectedBlock = file.selectedBlock;
+                        } else {
+                            info({
+                                title: "Rename block",
+                                message: "The block was not modified.",
+                            });
+                        }
+                    }}
+                >
+                    <Icon path={mdiRename} type="mdi" color="black"></Icon>
+                    Rename block
                 </button>
             </div>
 
